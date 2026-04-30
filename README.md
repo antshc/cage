@@ -66,6 +66,24 @@ docker run --rm -it -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
 
 The container runs as user `agent` (UID 1000) for secure filesystem access. This ensures correct permission mapping with `--userns=keep-id` (Podman) and `--user 1000:1000` (Docker).
 
+## Security hardening
+
+Known security gaps and their remediation status:
+
+| Status | Risk | Issue | Fix |
+|--------|------|-------|-----|
+| ☐ | Sudo access | Agent has `NOPASSWD:ALL` sudo, can bypass container restrictions | Remove sudoers entry |
+| ☐ | Proxy bypass | Agent can `unset HTTP_PROXY` or kill mitmproxy | Use iptables/network policy to force all traffic through proxy |
+| ☐ | Non-HTTP traffic | Raw TCP/UDP (SSH, DNS to external) isn't intercepted by mitmproxy | iptables rules to drop non-proxy traffic |
+| ☐ | DNS exfiltration | DNS queries go directly to host resolver, bypassing proxy | Lock DNS to internal resolver only |
+| ☐ | Host filesystem | Mounted volumes may be writable, agent can modify host files | Use `:ro` on all mounts except workspace |
+| ☐ | Docker socket | If host Docker socket is mounted, agent gets full host access | Never mount `/var/run/docker.sock` |
+| ☐ | Environment variables | Secrets passed via env vars are readable by the agent | Minimize env vars, use mounted secrets files |
+| ☐ | Linux capabilities | Container runs with default capabilities | Drop all with `--cap-drop=ALL` |
+| ☑ | Network allowlist | All HTTP/HTTPS traffic filtered through mitmproxy firewall rules | Done |
+| ☑ | Non-root user | Container runs as `agent` (UID 1000), not root | Done |
+| ☑ | Read-only config | Firewall config mounted as `:ro` | Done |
+
 ## Adding firewall rules
 
 Rules live in `config/rules/`. Each file defines an `ENVIRONMENT` dict with allowed hosts and optionally a `check_request(flow)` function for custom validation.
@@ -181,3 +199,5 @@ docker run --rm -e FIREWALL_ENVS=copilot,github,myservice \
   -v "$(pwd)/config:/etc/mitmproxy:ro" \
   sandbox
 ```
+
+
