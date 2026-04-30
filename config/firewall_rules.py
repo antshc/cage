@@ -1,37 +1,41 @@
+import os
+import sys
+from importlib import import_module
+
 from mitmproxy import http
-import re
 
-ALLOWED_SUBSCRIPTIONS = {
-    "00000000-0000-0000-0000-000000000000"
-}
+# Add config dir to path so rules package is importable
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-ALLOWED_RESOURCE_GROUPS = {
-    "rg-dev-sandbox",
-    "rg-ci-tests"
-}
+from rules import ENVIRONMENTS
 
-ALLOWED_HOSTS = {
-    "management.azure.com",
-    "login.microsoftonline.com",
-    "github.com",
-    "api.github.com",
-    "objects.githubusercontent.com",
-    "raw.githubusercontent.com",
-    "api.nuget.org",
-    "www.nuget.org",
-    # Copilot CLI
-    "api.githubcopilot.com",
-    "copilot-proxy.githubusercontent.com",
-    "default.exp-tas.com",
-    "registry.npmjs.org",
-    "api.business.githubcopilot.com",
-    "telemetry.business.githubcopilot.com",
-}
 
-ARM_RE = re.compile(
-    r"^/subscriptions/([^/]+)/resourceGroups/([^/?#]+)(/.*)?$",
-    re.IGNORECASE,
-)
+# --- Build active ruleset from enabled environments ---
+
+def _load_active_environments():
+    envs_str = os.environ.get("FIREWALL_ENVS", ",".join(ENVIRONMENTS.keys()))
+    return [e.strip() for e in envs_str.split(",") if e.strip()]
+
+
+ACTIVE_ENVS = _load_active_environments()
+
+ALLOWED_HOSTS: set[str] = set()
+HOST_HANDLERS: dict[str, callable] = {}
+
+for env_name in ACTIVE_ENVS:
+    env = ENVIRONMENTS.get(env_name)
+    if not env:
+        continue
+    ALLOWED_HOSTS.update(env.get("hosts", set()))
+
+    # If the rule module defines check_request, register it for its hosts
+    module = import_module(f"rules.{env_name}")
+    if hasattr(module, "check_request"):
+        for host in env.get("hosts", set()):
+            HOST_HANDLERS[host] = module.check_request
+
+
+# --- Main request handler ---
 
 def request(flow: http.HTTPFlow) -> None:
     host = flow.request.pretty_host.lower()
@@ -44,32 +48,6 @@ def request(flow: http.HTTPFlow) -> None:
         )
         return
 
-    if host != "management.azure.com":
-        return
-
-    match = ARM_RE.match(flow.request.path)
-    if not match:
-        flow.response = http.Response.make(
-            403,
-            b"Blocked Azure ARM path",
-            {"Content-Type": "text/plain"},
-        )
-        return
-
-    subscription_id = match.group(1).lower()
-    resource_group = match.group(2)
-
-    if subscription_id not in ALLOWED_SUBSCRIPTIONS:
-        flow.response = http.Response.make(
-            403,
-            b"Blocked Azure subscription",
-            {"Content-Type": "text/plain"},
-        )
-        return
-
-    if resource_group not in ALLOWED_RESOURCE_GROUPS:
-        flow.response = http.Response.make(
-            403,
-            b"Blocked Azure resource group",
-            {"Content-Type": "text/plain"},
-        )
+    handler = HOST_HANDLERS.get(host)
+    if handler:
+        handler(flow)

@@ -47,3 +47,47 @@ Pass the token into the container at runtime:
 ```bash
 docker run --rm -it -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" sandbox
 ```
+
+## Adding firewall rules
+
+Rules live in `config/rules/`. Each file defines an `ENVIRONMENT` dict with allowed hosts and optionally a `check_request(flow)` function for custom validation.
+
+### 1. Create a new rule file
+
+```python
+# config/rules/myservice.py
+from mitmproxy import http
+
+ENVIRONMENT = {
+    "hosts": {
+        "api.myservice.com",
+        "cdn.myservice.com",
+    },
+}
+
+# Optional: add custom request validation
+def check_request(flow: http.HTTPFlow) -> None:
+    if "/admin" in flow.request.path:
+        flow.response = http.Response.make(
+            403, b"Blocked admin path", {"Content-Type": "text/plain"}
+        )
+```
+
+### 2. Register it in `config/rules/__init__.py`
+
+```python
+from .myservice import ENVIRONMENT as MYSERVICE
+
+ENVIRONMENTS = {
+    # ... existing entries ...
+    "myservice": MYSERVICE,
+}
+```
+
+### 3. Enable it
+
+All registered environments are active by default. To enable only specific ones, set `FIREWALL_ENVS`:
+
+```bash
+docker run --rm -e FIREWALL_ENVS=copilot,github,myservice -v "$(pwd)/config":/etc/mitmproxy sandbox
+```
