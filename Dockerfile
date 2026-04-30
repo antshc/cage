@@ -18,6 +18,9 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Azure CLI
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
 # Create the agent user with UID/GID 1000 for secure filesystem access.
 # Using UID 1000 ensures --userns=keep-id (Podman) and --user 1000:1000 (Docker)
 # map correctly to the home directory owner.
