@@ -16,7 +16,7 @@ mitmdump \
   --listen-port 8080 \
   -s /etc/mitmproxy/config/firewall.py \
   --set block_global=false \
-  >/var/log/mitmproxy/mitmproxy_$(date +%Y%m%d_%H%M%S).log 2>&1 &
+  >>/var/log/mitmproxy/mitmproxy_$(date +%Y%m%d).log 2>&1 &
 
 sleep 1
 
