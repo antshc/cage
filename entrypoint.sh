@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ ! -f /etc/mitmproxy/firewall.py ]; then
+  echo "ERROR: /etc/mitmproxy/firewall.py not found" >&2
+  exit 1
+fi
+
+if [ -z "${COPILOT_GITHUB_TOKEN:-}" ]; then
+  echo "ERROR: COPILOT_GITHUB_TOKEN is not set" >&2
+  exit 1
+fi
+
 mitmdump \
   --listen-host 127.0.0.1 \
   --listen-port 8080 \
