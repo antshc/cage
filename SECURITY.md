@@ -15,4 +15,4 @@ Known security gaps and their remediation status:
 | ☐ | 🟡 Medium | Environment variables | Secrets passed via env vars are readable by the agent | Minimize env vars, use mounted secrets files |
 | ☑ | 🟡 Medium | Linux capabilities | Container runs with default capabilities | `cap_drop: ALL` + only `cap_add: NET_ADMIN` (for iptables) |
 | ☑ | 🟡 Medium | Read-only config | Firewall config mounted as `:ro` | Done |
-| ☑ | 🟡 Medium | Folder permissions | Sensitive directories locked down at build time | `/home/ubuntu` owned `root:root`; workspace `ubuntu:ubuntu 755`; `.copilot` `ubuntu:ubuntu 755`; `.mitmproxy` `root:root 750`; mitmproxy CA key `root 600`; CA cert `root 644`; `/etc/mitmproxy` `a+rx` (read/execute, no write for ubuntu) |
+| ☑ | 🟡 Medium | Folder permissions | Sensitive directories locked down at build time | `/home/ubuntu` owned `root:root`; workspace `ubuntu:ubuntu 755`; `.copilot` `ubuntu:ubuntu 755`; `.cache/copilot` `ubuntu:ubuntu 755` (pre-created so Copilot CLI can extract its bundled package); `.mitmproxy` `root:root 750`; mitmproxy CA key `root 600`; CA cert `root 644`; `/etc/mitmproxy` `a+rx` (read/execute, no write for ubuntu) |
