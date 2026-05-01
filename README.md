@@ -9,7 +9,7 @@ A sandboxed container environment for the Copilot agent. All outbound traffic is
 | Base image | .NET SDK 8.0 |
 | Runtimes | Node.js 22, Python 3 |
 | CLI tools | git, gh (GitHub CLI), curl, wget, jq, unzip, openssh-client |
-| Security | ca-certificates, gnupg, sudo |
+| Security | ca-certificates, gnupg, iptables, gosu |
 | Proxy | mitmproxy (mitmdump) |
 | Copilot | @github/copilot (npm global) |
 
@@ -59,7 +59,7 @@ docker run --rm -it -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
 
 ## Agent user
 
-The container runs as user `ubuntu` (UID 1000), the default user in the Ubuntu 24.04 base image. No sudo access is granted.
+The container starts as root to apply iptables network rules, then drops to user `ubuntu` (UID 1000) via `gosu`. mitmproxy runs as a dedicated `_mitmproxy` user. No sudo access is granted to `ubuntu`.
 
 ## Security hardening
 

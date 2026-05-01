@@ -10,6 +10,7 @@ RUN apt-get update \
         curl wget git jq ca-certificates gnupg unzip bash openssh-client \
         python3 python3-pip python3-venv \
         dotnet-sdk-8.0 \
+        iptables gosu \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && npm install -g @github/copilot \
@@ -33,25 +34,26 @@ RUN HOME=/tmp/mitmproxy-setup mitmdump --version \
     && mkdir -p /home/ubuntu/.mitmproxy \
     && HOME=/home/ubuntu mitmdump -q &>/dev/null & sleep 2 && kill $! 2>/dev/null || true \
     && cp /home/ubuntu/.mitmproxy/mitmproxy-ca-cert.pem /usr/local/share/ca-certificates/mitmproxy.crt \
-    && update-ca-certificates
+    && update-ca-certificates \
+    && mkdir -p /etc/mitmproxy/certs \
+    && cp /home/ubuntu/.mitmproxy/mitmproxy-ca*.pem /etc/mitmproxy/certs/ \
+    && chmod 755 /etc/mitmproxy/certs \
+    && chmod 644 /etc/mitmproxy/certs/mitmproxy-ca-cert.pem \
+    && chmod 600 /etc/mitmproxy/certs/mitmproxy-ca.pem
 
 # Copy entrypoint and set up workspace/mitmproxy directories with correct ownership
 COPY entrypoint.sh /etc/mitmproxy/entrypoint.sh
 RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && mkdir -p /home/ubuntu/workspace /var/log/mitmproxy /etc/mitmproxy/config \
     && chmod -R a+rx /etc/mitmproxy \
-    && chown -R ubuntu:ubuntu /home/ubuntu /etc/mitmproxy /var/log/mitmproxy
+    && chown -R ubuntu:ubuntu /home/ubuntu
 
 ENV HTTP_PROXY=http://127.0.0.1:8080
 ENV HTTPS_PROXY=http://127.0.0.1:8080
 ENV ALL_PROXY=http://127.0.0.1:8080
 ENV NO_PROXY=localhost,127.0.0.1
 
-# Switch to ubuntu user for secure sandboxed execution
-USER ubuntu
-
-# In worktree sandbox mode, the git worktree is bind-mounted at /home/ubuntu/workspace
-# and overrides the working directory at container start.
+# Entrypoint runs as root to set iptables, then drops to ubuntu via gosu
 WORKDIR /home/ubuntu/workspace
 
 ENTRYPOINT ["/etc/mitmproxy/entrypoint.sh"]

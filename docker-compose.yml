@@ -1,6 +1,12 @@
 services:
   sandbox:
     build: .
+    cap_add:
+      - NET_ADMIN
+      - SETUID
+      - SETGID
+    cap_drop:
+      - ALL
     environment:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
     volumes:
