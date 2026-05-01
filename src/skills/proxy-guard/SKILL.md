@@ -1,9 +1,11 @@
 ---
 description: >
+  IMPORTANT: Load this skill immediately whenever ANY of these occur:
+  a 403 status code is returned from any HTTP/HTTPS request, a fetch or curl
+  command fails with status 403, or any web_fetch / web_search / curl / wget
+  tool call returns an error or 403 response. Do NOT assume the 403 is from
+  the remote server — in this sandbox all 403s are proxy blocks
   When proxy return an error [Sandbox Firewall] Access to '{host}' is blocked.
-  Proxy firewall guardrail for the sandboxed Docker container. Enforces correct
-  behavior when outbound requests are blocked by mitmproxy. Load this skill
-  whenever working inside the sandbox or when a network request fails.
 ---
 
 # Proxy Guard
