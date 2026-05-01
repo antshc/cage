@@ -78,7 +78,6 @@ copiloty() {
   docker run --rm -it \
     --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
     -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
-    -e COPILOT_NO_ASK_USER=false \
     -v "/absolute/path/to/runtime/logs/mitmproxy:/var/log/mitmproxy" \
     -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
     -v "$(pwd):/home/ubuntu/workspace" \
