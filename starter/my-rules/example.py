@@ -1,3 +1,13 @@
+# Hosts allowed by default (built into the container image):
+#
+#   copilot.py  — api.github.com, api.githubcopilot.com,
+#                 api.business.githubcopilot.com, copilot-proxy.githubusercontent.com,
+#                 telemetry.business.githubcopilot.com, default.exp-tas.com
+#   github.py   — github.com, api.github.com,
+#                 objects.githubusercontent.com, raw.githubusercontent.com
+#   npm.py      — registry.npmjs.org
+#   nuget.py    — api.nuget.org, www.nuget.org
+#
 # Add your custom firewall rules here to extend the container's built-in defaults.
 #
 # Mount this directory in docker-compose.yml:
