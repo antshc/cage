@@ -26,8 +26,11 @@ volumes:
 ## 3. Run
 
 ```bash
-# docker compose
+# Prompt mode (non-interactive)
 docker compose run --rm sandbox cop "explain this codebase"
+
+# Interactive REPL
+docker compose run --rm -it sandbox copiloty
 
 # docker run
 docker run --rm \
@@ -37,6 +40,15 @@ docker run --rm \
   -v "$(pwd)/logs/copilot:/var/log/copilot" \
   -v "/absolute/path/to/your/project:/home/ubuntu/workspace" \
   khdevnet/sandbox cop "explain this codebase"
+
+# Interactive Copilot REPL (docker run)
+docker run --rm -it \
+  --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
+  -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
+  -v "$(pwd)/logs/mitmproxy:/var/log/mitmproxy" \
+  -v "$(pwd)/logs/copilot:/var/log/copilot" \
+  -v "/absolute/path/to/your/project:/home/ubuntu/workspace" \
+  khdevnet/sandbox copiloty
 
 # Interactive shell
 docker compose run --rm -it sandbox bash
@@ -60,6 +72,17 @@ cop() {
     -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
     -v "$(pwd):/home/ubuntu/workspace" \
     khdevnet/sandbox cop "$@"
+}
+
+copiloty() {
+  docker run --rm -it \
+    --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
+    -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
+    -e COPILOT_NO_ASK_USER=false \
+    -v "/absolute/path/to/runtime/logs/mitmproxy:/var/log/mitmproxy" \
+    -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
+    -v "$(pwd):/home/ubuntu/workspace" \
+    khdevnet/sandbox copiloty
 }
 ```
 
