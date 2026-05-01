@@ -98,6 +98,7 @@ Then use it from any project directory:
 cd /your/project
 cop "explain this codebase"
 cop "fix the failing tests"
+copiloty
 ```
 
 
