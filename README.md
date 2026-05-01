@@ -107,12 +107,11 @@ All Copilot CLI flags are configurable via environment variables — set them in
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `COPILOT_GITHUB_TOKEN` | *(required)* | GitHub token for Copilot CLI |
-| `COPILOT_MODEL` | `claude-haiku-4.5` | Model: `claude-haiku-4.5`, `claude-sonnet-4.6`, `claude-opus-4` |
+| `COPILOT_MODEL` | `claude-sonnet-4.6` | Model: `claude-haiku-4.5`, `claude-sonnet-4.6`, `claude-opus-4` |
 | `COPILOT_EFFORT` | *(unset)* | Effort level: `low`, `medium`, `high`. Omitted when unset — not all models support it. |
 | `COPILOT_OUTPUT_FORMAT` | `text` | Output format: `text`, `json`, `stream-json` |
-| `COPILOT_ALLOW_ALL_TOOLS` | `true` | Pass `--allow-all-tools` to the CLI |
-| `COPILOT_NO_ASK_USER` | `true` | Pass `--no-ask-user` to the CLI |
 | `COPILOT_LOG_LEVEL` | `info` | Log verbosity: `none`, `error`, `warning`, `info`, `debug`, `all` |
+| `COPILOT_LOG_DIR` | `/var/log/copilot` | Directory for Copilot logs |
 | `SANDBOX_TAG` | `latest` | Docker Hub image tag to pull |
 
 ```bash
@@ -129,6 +128,17 @@ Proxy and Copilot CLI logs are written to `./logs/` on the host:
 |------|---------|
 | `./logs/mitmproxy/` | Network proxy logs (timestamped) |
 | `./logs/copilot/` | Copilot CLI session logs |
+
+## Volume mounts
+
+| Host path | Container path | Purpose |
+|-----------|---------------|---------|
+| `./logs/mitmproxy` | `/var/log/mitmproxy` | Mitmproxy logs (timestamped) |
+| `./logs/copilot` | `/var/log/copilot` | Copilot CLI logs |
+| `./workspace` | `/home/ubuntu/workspace` | Project workspace |
+| `./my-rules` *(optional)* | `/etc/mitmproxy/user-rules` (read-only) | Extra firewall rules (extend defaults) |
+| `./certs` *(optional)* | `/etc/sandbox/certs` (read-only) | CA certificates (see below) |
+| `./setup.sh` *(optional)* | `/etc/sandbox/setup.sh` (read-only) | Startup script (see below) |
 
 ## Optional startup script
 

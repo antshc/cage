@@ -11,7 +11,7 @@ services:
       - ALL
     environment:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
-      - COPILOT_MODEL=${COPILOT_MODEL:-claude-haiku-4.5}
+      - COPILOT_MODEL=${COPILOT_MODEL:-claude-sonnet-4.6}
     volumes:
       - ./logs/mitmproxy:/var/log/mitmproxy
       - ./logs/copilot:/var/log/copilot
