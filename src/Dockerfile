@@ -54,9 +54,9 @@ RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chmod -R a+rx /etc/mitmproxy \
     && chown -R root:root /home/ubuntu \
     && chmod 755 /home/ubuntu \
-    && mkdir -p /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache/copilot \
-    && chown ubuntu:ubuntu /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot \
-    && chmod 755 /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot \
+    && mkdir -p /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet \
+    && chown ubuntu:ubuntu /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet \
+    && chmod 755 /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet \
     && chown root:root /home/ubuntu/.mitmproxy \
     && chmod 750 /home/ubuntu/.mitmproxy
 
