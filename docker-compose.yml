@@ -6,4 +6,4 @@ services:
     volumes:
       - ./config:/etc/mitmproxy/config:ro
       - ./logs:/var/log/mitmproxy
-      - ./hello:/home/agent/workspace
+      - ./hello:/home/ubuntu/workspace

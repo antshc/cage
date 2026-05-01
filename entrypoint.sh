@@ -22,8 +22,8 @@ sleep 1
 
 # Trust mitmproxy CA for .NET and system-wide
 if [ -f "$HOME/.mitmproxy/mitmproxy-ca-cert.pem" ]; then
-  sudo cp "$HOME/.mitmproxy/mitmproxy-ca-cert.pem" /usr/local/share/ca-certificates/mitmproxy.crt
-  sudo update-ca-certificates >/dev/null 2>&1
+  cp "$HOME/.mitmproxy/mitmproxy-ca-cert.pem" /usr/local/share/ca-certificates/mitmproxy.crt
+  update-ca-certificates >/dev/null 2>&1
 fi
 
 export HTTP_PROXY=http://127.0.0.1:8080
