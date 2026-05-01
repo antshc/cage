@@ -43,9 +43,16 @@ def request(flow: http.HTTPFlow) -> None:
     host = flow.request.pretty_host.lower()
 
     if host not in ALLOWED_HOSTS:
+        body = (
+            f"[Sandbox Firewall] Access to '{host}' is blocked.\n"
+            f"This is not a rejection from the remote site — the sandbox proxy blocked the request.\n"
+            f"To allow this host, add it to a rule file in my-rules/ and mount the directory:\n"
+            f"  -v ./my-rules:/etc/mitmproxy/user-rules:ro\n"
+            f"See my-rules/example.py for the format."
+        )
         flow.response = http.Response.make(
             403,
-            f"Blocked host: {host}".encode(),
+            body.encode(),
             {"Content-Type": "text/plain"},
         )
         return
