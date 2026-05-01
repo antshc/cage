@@ -22,6 +22,7 @@ args=(
   --log-dir "$LOG_DIR"
   --allow-all-tools
   --no-ask-user
+  --allow-all-urls
   --accessible-directories "$WORKSPACE_DIR"
 )
 
