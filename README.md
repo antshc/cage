@@ -1,291 +1,160 @@
-# sandbox
+# Copilot Sandbox — Quickstart
 
-A sandboxed container environment for the Copilot agent. All outbound traffic is routed through a mitmproxy firewall (`firewall.py`) running on `127.0.0.1:8080`.
+A sandboxed Docker container for the Copilot agent. All outbound traffic is forced through a mitmproxy firewall — only Copilot, GitHub, npm, and NuGet endpoints are permitted by default.
 
-## Installed packages
+## Prerequisites
 
-| Category | Packages |
-|----------|----------|
-| Base image | .NET SDK 8.0 |
-| Runtimes | Node.js 22, Python 3 |
-| CLI tools | git, gh (GitHub CLI), curl, wget, jq, unzip, openssh-client |
-| Security | ca-certificates, gnupg, iptables, gosu |
-| Proxy | mitmproxy (mitmdump) |
-| Copilot | @github/copilot (npm global) |
+- Docker with Compose v2
+- A GitHub token with Copilot access
 
-## Build
-
-```bash
-docker compose build
-```
-
-## Run
+## 1. Set your token
 
 ```bash
 export COPILOT_GITHUB_TOKEN=<your-github-token>
-docker compose run --rm sandbox cop "hello world"
 ```
 
-### Use the pre-built Hub image (skip build)
+## 2. Mount your workspace
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.hub.yml run --rm sandbox cop "hello world"
+Edit `docker-compose.yml` and uncomment the workspace volume, pointing it to your project:
+
+```yaml
+volumes:
+  # ...
+  - /absolute/path/to/your/project:/home/ubuntu/workspace
 ```
 
-### Distribute to end users
-
-Give users the `runtime/` folder. It contains only what's needed to pull and run without building:
-
-```bash
-cd runtime
-export COPILOT_GITHUB_TOKEN=<token>
-docker compose run --rm sandbox cop "explain this codebase"
-```
-
-## Running prompts with `cop`
-
-The default container command is `cop`, a wrapper around the Copilot CLI. Pass a prompt as arguments:
+## 3. Run
 
 ```bash
 # docker compose
 docker compose run --rm sandbox cop "explain this codebase"
 
-# docker run (built locally)
+# docker run
 docker run --rm \
   --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
   -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
   -v "$(pwd)/logs/mitmproxy:/var/log/mitmproxy" \
   -v "$(pwd)/logs/copilot:/var/log/copilot" \
-  -v "$(pwd)/workspace:/home/ubuntu/workspace" \
-  sandbox cop "explain this codebase"
-
-# docker run (Hub image)
-docker run --rm \
-  --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
-  -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
-  -v "$(pwd)/logs/mitmproxy:/var/log/mitmproxy" \
-  -v "$(pwd)/logs/copilot:/var/log/copilot" \
-  -v "$(pwd)/workspace:/home/ubuntu/workspace" \
+  -v "/absolute/path/to/your/project:/home/ubuntu/workspace" \
   khdevnet/sandbox cop "explain this codebase"
+
+# Interactive shell
+docker compose run --rm -it sandbox bash
 ```
 
-### Overriding defaults
+> On first run Docker pulls the image automatically (may take a few minutes).
 
-All Copilot CLI flags are configurable via environment variables:
+## 4. Register a shell alias (optional)
+
+Add a shell function to your profile so `cop` mounts whichever directory you're currently in as the workspace:
+
+```bash
+# ~/.bashrc or ~/.zshrc
+export COPILOT_GITHUB_TOKEN=<your-github-token>
+
+cop() {
+  docker run --rm \
+    --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
+    -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
+    -v "/absolute/path/to/runtime/logs/mitmproxy:/var/log/mitmproxy" \
+    -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
+    -v "$(pwd):/home/ubuntu/workspace" \
+    khdevnet/sandbox cop "$@"
+}
+```
+
+Reload your shell:
+
+```bash
+source ~/.bashrc   # or source ~/.zshrc
+```
+
+Then use it from any project directory:
+
+```bash
+cd /your/project
+cop "explain this codebase"
+cop "fix the failing tests"
+```
+
+
+
+All Copilot CLI flags are configurable via environment variables — set them in your shell or add them to `docker-compose.yml` under `environment:`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `COPILOT_MODEL` | `claude-haiku-4.5` | Model to use (`claude-haiku-4.5`, `claude-sonnet-4.6`, `claude-opus-4`) |
-| `COPILOT_EFFORT` | *(unset)* | Effort level (`low`, `medium`, `high`). Omitted when unset — not supported by all models (e.g. haiku). |
-| `COPILOT_OUTPUT_FORMAT` | `text` | Output format (`text`, `json`, `stream-json`) |
-| `COPILOT_ALLOW_ALL_TOOLS` | `true` | Pass `--allow-all-tools` when `true` |
-| `COPILOT_NO_ASK_USER` | `true` | Pass `--no-ask-user` when `true` |
-| `COPILOT_LOG_LEVEL` | `debug` | Log verbosity |
-| `COPILOT_LOG_DIR` | `/var/log/copilot` | Directory for Copilot logs (mount `./logs/copilot`) |
+| `COPILOT_GITHUB_TOKEN` | *(required)* | GitHub token for Copilot CLI |
+| `COPILOT_MODEL` | `claude-haiku-4.5` | Model: `claude-haiku-4.5`, `claude-sonnet-4.6`, `claude-opus-4` |
+| `COPILOT_EFFORT` | *(unset)* | Effort level: `low`, `medium`, `high`. Omitted when unset — not all models support it. |
+| `COPILOT_OUTPUT_FORMAT` | `text` | Output format: `text`, `json`, `stream-json` |
+| `COPILOT_ALLOW_ALL_TOOLS` | `true` | Pass `--allow-all-tools` to the CLI |
+| `COPILOT_NO_ASK_USER` | `true` | Pass `--no-ask-user` to the CLI |
+| `COPILOT_LOG_LEVEL` | `info` | Log verbosity: `none`, `error`, `warning`, `info`, `debug`, `all` |
+| `SANDBOX_TAG` | `latest` | Docker Hub image tag to pull |
 
 ```bash
-# Set effort explicitly (omitted by default — not all models support it)
-COPILOT_MODEL=claude-opus-4 COPILOT_EFFORT=high \
-  docker compose run --rm sandbox cop "deep analysis of the auth module"
-
-# Use sonnet for a balance of quality and speed
-COPILOT_MODEL=claude-sonnet-4.6 \
-  docker compose run --rm sandbox cop "refactor this module"
+# Use a more powerful model with high effort
+COPILOT_MODEL=claude-sonnet-4.6 COPILOT_EFFORT=high \
+  docker compose run --rm sandbox cop "refactor the auth module"
 ```
 
-## Volume mounts
+## Logs
 
-| Host path | Container path | Purpose |
-|-----------|---------------|---------|
-| `./logs/mitmproxy` | `/var/log/mitmproxy` | Mitmproxy logs (timestamped) |
-| `./logs/copilot` | `/var/log/copilot` | Copilot CLI logs |
-| `./workspace` | `/home/ubuntu/workspace` | Project workspace |
-| `./my-rules` *(optional)* | `/etc/mitmproxy/user-rules` (read-only) | Extra firewall rules (extend defaults) |
-| `./certs` *(optional)* | `/etc/sandbox/certs` (read-only) | CA certificates (see below) |
-| `./setup.sh` *(optional)* | `/etc/sandbox/setup.sh` (read-only) | Startup script (see below) |
+Proxy and Copilot CLI logs are written to `./logs/` on the host:
 
-## Startup script (optional)
+| Path | Contents |
+|------|---------|
+| `./logs/mitmproxy/` | Network proxy logs (timestamped) |
+| `./logs/copilot/` | Copilot CLI session logs |
 
-You can mount an optional shell script at `/etc/sandbox/setup.sh` to run custom setup steps at container startup. The script:
+## Optional startup script
 
-- Runs as the `ubuntu` user after mitmproxy and iptables are configured (network access through the proxy is available).
-- Runs before the main container command.
-- If absent, startup continues with no warning or error.
-- If it exits non-zero, the container aborts with the same exit code.
-- Is mounted `:ro` so the agent cannot modify it at runtime.
-
-### Available environment variables
-
-| Variable | Description |
-|----------|-------------|
-| `COPILOT_GITHUB_TOKEN` | GitHub token for Copilot |
-| `GH_TOKEN` | GitHub token for gh CLI (same value) |
-| `HTTP_PROXY` | `http://127.0.0.1:8080` |
-| `HTTPS_PROXY` | `http://127.0.0.1:8080` |
-| `NODE_EXTRA_CA_CERTS` | Path to CA bundle trusted by Node.js (mitmproxy cert + any user certs) |
-
-### Enabling the setup script
-
-Uncomment the volume entry in `docker-compose.yml`:
+Create a `setup.sh` and mount it by uncommenting the line in `docker-compose.yml`:
 
 ```yaml
-volumes:
-  - ./setup.sh:/etc/sandbox/setup.sh:ro
+- ./setup.sh:/etc/sandbox/setup.sh:ro
 ```
 
-Or pass it directly with `docker compose run` by adding the volume to `docker-compose.yml` and running:
+The script runs as the `ubuntu` user after the proxy is ready, before your command. If it exits non-zero the container aborts.
 
-```bash
-docker compose run --rm sandbox
-```
-
-An example [`setup.sh`](setup.sh) is included in this repo showing how to install gh CLI extensions and npm packages.
+Available env vars in the script: `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, `HTTP_PROXY`, `HTTPS_PROXY`, `NODE_EXTRA_CA_CERTS`.
 
 ## CA certificates (optional)
 
-To trust a private registry or internal CA (e.g. a corporate NuGet feed, private npm registry, or self-signed HTTPS endpoint), mount a directory of `.crt` or `.pem` files:
+To trust a private registry or internal CA, place `.crt` or `.pem` files in a `certs/` folder and uncomment the volume in `docker-compose.yml`:
 
 ```yaml
-# docker-compose.yml
 volumes:
   - ./certs:/etc/sandbox/certs:ro
 ```
 
-At startup (as root, before the proxy starts) each certificate is:
-- Installed into the system CA store via `update-ca-certificates` — trusted by dotnet, git, curl, gh CLI
-- Appended to the Node CA bundle — trusted by node, npm, and the Copilot CLI
+At startup each certificate is installed into the system CA store (dotnet, git, curl, gh CLI) and appended to the Node CA bundle (node, npm, Copilot CLI).
 
-No image rebuild is needed. The mitmproxy CA cert is always included in the bundle.
+## Extending the firewall
 
-## Agent user
+Default rules are baked into the image. Allowed hosts by default:
 
-The container starts as root to apply iptables network rules, then drops to user `ubuntu` (UID 1000) via `gosu`. mitmproxy runs as a dedicated `_mitmproxy` user. No sudo access is granted to `ubuntu`.
+| Rule | Hosts |
+|------|-------|
+| copilot | `api.githubcopilot.com`, `api.business.githubcopilot.com`, `copilot-proxy.githubusercontent.com`, `telemetry.business.githubcopilot.com`, `default.exp-tas.com`, `api.github.com` |
+| github | `github.com`, `api.github.com`, `objects.githubusercontent.com`, `raw.githubusercontent.com` |
+| npm | `registry.npmjs.org` |
+| nuget | `api.nuget.org`, `www.nuget.org` |
 
-## Security hardening
-
-See [SECURITY.md](SECURITY.md).
-
-## Firewall rules
-
-Default rules are baked into the image (`src/firewall/rules/`). Every `.py` file in that directory is active — delete a file and rebuild to disable it. Hosts allowed by default:
-
-| File | Allowed hosts |
-|------|---------------|
-| `copilot.py` | `api.githubcopilot.com`, `api.business.githubcopilot.com`, `copilot-proxy.githubusercontent.com`, `telemetry.business.githubcopilot.com`, `default.exp-tas.com`, `api.github.com` |
-| `github.py` | `github.com`, `api.github.com`, `objects.githubusercontent.com`, `raw.githubusercontent.com` |
-| `npm.py` | `registry.npmjs.org` |
-| `nuget.py` | `api.nuget.org`, `www.nuget.org` |
-
-### Adding rules without rebuilding
-
-Mount a directory of `.py` files at `/etc/mitmproxy/user-rules` — they are loaded on top of the defaults:
-
-```yaml
-volumes:
-  - ./my-rules:/etc/mitmproxy/user-rules:ro
-```
-
-See `runtime/my-rules/example.py` for the full convention and an annotated template.
-
-### Adding built-in rules (requires rebuild)
-
-Create a new file in `src/firewall/rules/` and rebuild the image.
-
-#### 1. Create a new rule file
+To allow additional hosts, add `.py` rule files to `my-rules/` — they extend the defaults without replacing them. See `my-rules/example.py` for the full convention.
 
 ```python
-# firewall/rules/myservice.py
-from mitmproxy import http
+# firewall/rules/__init__.py
+from .myservice import ENVIRONMENT as MYSERVICE
 
-ENVIRONMENT = {
-    "hosts": {
-        "api.myservice.com",
-        "cdn.myservice.com",
-    },
+ENVIRONMENTS = {
+    # ... existing entries ...
+    "myservice": MYSERVICE,
 }
-
-# Optional: add custom request validation
-def check_request(flow: http.HTTPFlow) -> None:
-    if "/admin" in flow.request.path:
-        flow.response = http.Response.make(
-            403, b"Blocked admin path", {"Content-Type": "text/plain"}
-        )
 ```
 
-#### 2. Adding URL path restrictions
-
-Use `check_request(flow)` to enforce fine-grained path-based rules. The function receives the full `mitmproxy.http.HTTPFlow` object — inspect `flow.request.path`, `flow.request.method`, headers, etc.
-
-**Block specific paths:**
-
-```python
-def check_request(flow: http.HTTPFlow) -> None:
-    blocked_paths = ["/admin", "/internal", "/.env"]
-    if any(p in flow.request.path for p in blocked_paths):
-        flow.response = http.Response.make(
-            403, b"Blocked path", {"Content-Type": "text/plain"}
-        )
-```
-
-**Allow only matching path patterns (regex):**
-
-```python
-import re
-from mitmproxy import http
-
-ALLOWED_PATH = re.compile(r"^/api/v[0-9]+/")
-
-ENVIRONMENT = {
-    "hosts": {"api.example.com"},
-}
-
-def check_request(flow: http.HTTPFlow) -> None:
-    if not ALLOWED_PATH.match(flow.request.path):
-        flow.response = http.Response.make(
-            403, b"Path not allowed", {"Content-Type": "text/plain"}
-        )
-```
-
-**Restrict by method + path:**
-
-```python
-def check_request(flow: http.HTTPFlow) -> None:
-    if flow.request.method not in ("GET", "HEAD"):
-        flow.response = http.Response.make(
-            403, b"Only read operations allowed", {"Content-Type": "text/plain"}
-        )
-```
-
-**Scope to specific resource identifiers (e.g. subscriptions, projects):**
-
-```python
-import re
-from mitmproxy import http
-
-PATH_RE = re.compile(r"^/subscriptions/([^/]+)/resourceGroups/([^/?#]+)")
-
-ENVIRONMENT = {
-    "hosts": {"management.azure.com"},
-    "subscriptions": {"00000000-0000-0000-0000-000000000000"},
-    "resource_groups": {"rg-dev-sandbox", "rg-ci-tests"},
-}
-
-def check_request(flow: http.HTTPFlow) -> None:
-    match = PATH_RE.match(flow.request.path)
-    if not match:
-        flow.response = http.Response.make(403, b"Blocked path", {"Content-Type": "text/plain"})
-        return
-    if match.group(1).lower() not in ENVIRONMENT["subscriptions"]:
-        flow.response = http.Response.make(403, b"Blocked subscription", {"Content-Type": "text/plain"})
-        return
-    if match.group(2) not in ENVIRONMENT["resource_groups"]:
-        flow.response = http.Response.make(403, b"Blocked resource group", {"Content-Type": "text/plain"})
-```
-
-#### 3. Rebuild
+Then enable it via `FIREWALL_ENVS`:
 
 ```bash
-docker compose build
+FIREWALL_ENVS=copilot,github,myservice docker compose run --rm sandbox cop "..."
 ```
-
-
