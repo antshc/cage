@@ -44,7 +44,46 @@ docker compose run --rm -it sandbox bash
 
 > On first run Docker pulls the image automatically (may take a few minutes).
 
-## Configuration
+## 4. Register a shell alias (optional)
+
+Add an alias to your shell profile so you can call `cop` from any directory:
+
+```bash
+# ~/.bashrc or ~/.zshrc
+export COPILOT_GITHUB_TOKEN=<your-github-token>
+alias cop='docker compose -f /absolute/path/to/runtime/docker-compose.yml run --rm sandbox cop'
+```
+
+Reload your shell:
+
+```bash
+source ~/.bashrc   # or source ~/.zshrc
+```
+
+Then use it from any project directory:
+
+```bash
+cd /your/project
+cop "explain this codebase"
+cop "fix the failing tests"
+```
+
+The workspace inside the container is always `/home/ubuntu/workspace`. If you want `cop` to operate on whichever directory you're currently in, use a function instead of an alias so you can pass the current directory dynamically:
+
+```bash
+# ~/.bashrc or ~/.zshrc
+cop() {
+  docker run --rm \
+    --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
+    -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
+    -v "/absolute/path/to/runtime/logs/mitmproxy:/var/log/mitmproxy" \
+    -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
+    -v "$(pwd):/home/ubuntu/workspace" \
+    khdevnet/sandbox cop "$@"
+}
+```
+
+
 
 All Copilot CLI flags are configurable via environment variables — set them in your shell or add them to `docker-compose.yml` under `environment:`.
 
