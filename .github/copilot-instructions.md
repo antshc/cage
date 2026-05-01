@@ -13,10 +13,15 @@ Sandboxed container for Copilot agent. All outbound HTTP/HTTPS routed through mi
 - `docker-compose.yml` — build & run config
 - `hello/` — test .NET app
 
-## Build & Test
+## Build
 
 ```bash
 docker compose build
+```
+
+## Test dotnet app
+
+```bash
 docker compose run --rm sandbox dotnet run
 ```
 
@@ -47,3 +52,7 @@ Review `SECURITY.md` before making changes. Do not introduce:
 - Firewall rules: add file in `config/rules/`, register in `config/rules/__init__.py`
 - Workspace bind-mounted at `/home/ubuntu/workspace`
 - Logs volume at `/var/log/mitmproxy`
+
+## Optional startup script
+
+Mount `/etc/sandbox/setup.sh` (`:ro`) to run custom setup steps as `ubuntu` after the proxy is ready but before the main command. If absent, startup continues silently. If it exits non-zero, the container aborts. Available env vars: `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, `HTTP_PROXY`, `HTTPS_PROXY`, `NODE_EXTRA_CA_CERTS`. See `setup.sh` in the repo for an example.

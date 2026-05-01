@@ -13,3 +13,5 @@ services:
       - ./config:/etc/mitmproxy/config:ro
       - ./logs:/var/log/mitmproxy
       - ./hello:/home/ubuntu/workspace
+      # Optional: mount a setup script to run at startup (as ubuntu, after proxy is ready)
+      # - ./setup.sh:/etc/sandbox/setup.sh:ro

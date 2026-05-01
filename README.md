@@ -45,6 +45,47 @@ docker run --rm \
 | `./config` | `/etc/mitmproxy` (read-only) | Firewall rules + entrypoint |
 | `./logs` | `/var/log/mitmproxy` | Mitmproxy logs (timestamped) |
 | `./hello` (or project) | `/home/ubuntu/workspace` | Project workspace |
+| `./setup.sh` *(optional)* | `/etc/sandbox/setup.sh` (read-only) | Startup script (see below) |
+
+## Startup script (optional)
+
+You can mount an optional shell script at `/etc/sandbox/setup.sh` to run custom setup steps at container startup. The script:
+
+- Runs as the `ubuntu` user after mitmproxy and iptables are configured (network access through the proxy is available).
+- Runs before the main container command.
+- If absent, startup continues with no warning or error.
+- If it exits non-zero, the container aborts with the same exit code.
+- Is mounted `:ro` so the agent cannot modify it at runtime.
+
+### Available environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `COPILOT_GITHUB_TOKEN` | GitHub token for Copilot |
+| `GH_TOKEN` | GitHub token for gh CLI (same value) |
+| `HTTP_PROXY` | `http://127.0.0.1:8080` |
+| `HTTPS_PROXY` | `http://127.0.0.1:8080` |
+| `NODE_EXTRA_CA_CERTS` | Path to mitmproxy CA cert (trusted by Node.js) |
+
+### Enabling the setup script
+
+Uncomment the volume entry in `docker-compose.yml`:
+
+```yaml
+volumes:
+  - ./setup.sh:/etc/sandbox/setup.sh:ro
+```
+
+Or pass it directly to `docker run`:
+
+```bash
+docker run --rm \
+  -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
+  -v "$(pwd)/setup.sh:/etc/sandbox/setup.sh:ro" \
+  sandbox
+```
+
+An example [`setup.sh`](setup.sh) is included in this repo showing how to install gh CLI extensions and npm packages.
 
 ## Environment setup
 
