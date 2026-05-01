@@ -11,9 +11,9 @@ services:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
       - COPILOT_MODEL=${COPILOT_MODEL:-claude-haiku-4.5}
     volumes:
-      - ./firewall:/etc/mitmproxy/config:ro
       - ./logs/mitmproxy:/var/log/mitmproxy
       - ./logs/copilot:/var/log/copilot
+      - ./my-rules:/etc/mitmproxy/user-rules:ro
       # Mount your project workspace:
       # - /path/to/your/project:/home/ubuntu/workspace
       # Optional: run custom setup steps at startup (as ubuntu, after proxy is ready):

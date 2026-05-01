@@ -15,11 +15,6 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-if [ ! -f /etc/mitmproxy/config/firewall.py ]; then
-  echo "ERROR: /etc/mitmproxy/config/firewall.py not found" >&2
-  exit 1
-fi
-
 if [ -z "${COPILOT_GITHUB_TOKEN:-}" ]; then
   echo "ERROR: COPILOT_GITHUB_TOKEN is not set" >&2
   exit 1

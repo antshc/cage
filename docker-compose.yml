@@ -13,7 +13,6 @@ services:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
       - COPILOT_MODEL=${COPILOT_MODEL:-claude-haiku-4.5}
     volumes:
-      - ./firewall:/etc/mitmproxy/config:ro
       - ./logs/mitmproxy:/var/log/mitmproxy
       - ./logs/copilot:/var/log/copilot
       - ./workspace:/home/ubuntu/workspace

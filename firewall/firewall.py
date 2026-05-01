@@ -1,3 +1,4 @@
+import importlib.util
 import os
 import sys
 from importlib import import_module
@@ -33,6 +34,26 @@ for env_name in ACTIVE_ENVS:
     if hasattr(module, "check_request"):
         for host in env.get("hosts", set()):
             HOST_HANDLERS[host] = module.check_request
+
+
+# --- Load user-supplied extension rules (always applied when mounted) ---
+
+USER_RULES_DIR = "/etc/mitmproxy/user-rules"
+
+if os.path.isdir(USER_RULES_DIR):
+    for fname in sorted(os.listdir(USER_RULES_DIR)):
+        if not fname.endswith(".py"):
+            continue
+        fpath = os.path.join(USER_RULES_DIR, fname)
+        spec = importlib.util.spec_from_file_location(fname[:-3], fpath)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        env = getattr(module, "ENVIRONMENT", {})
+        hosts = env.get("hosts", set())
+        ALLOWED_HOSTS.update(hosts)
+        if hasattr(module, "check_request"):
+            for host in hosts:
+                HOST_HANDLERS[host] = module.check_request
 
 
 # --- Main request handler ---
