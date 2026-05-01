@@ -1,14 +1,15 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV DOTNET_NOLOGO=1
 
-# Install system dependencies
+# Install system dependencies and .NET SDK via apt
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         curl wget git jq ca-certificates gnupg sudo unzip bash openssh-client \
         python3 python3-pip python3-venv \
+        dotnet-sdk-8.0 \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && npm install -g @github/copilot \
@@ -31,8 +32,8 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
 # Using UID 1000 ensures --userns=keep-id (Podman) and --user 1000:1000 (Docker)
 # map correctly to the home directory owner.
 ARG USERNAME=agent
-ARG USER_UID=1000
-ARG USER_GID=1000
+ARG USER_UID=1001
+ARG USER_GID=1001
 
 RUN groupadd --gid ${USER_GID} ${USERNAME} \
     && useradd --uid ${USER_UID} --gid ${USER_GID} -m ${USERNAME} -s /bin/bash \
