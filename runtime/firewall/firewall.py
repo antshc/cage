@@ -1,50 +1,21 @@
 import importlib.util
 import os
-import sys
-from importlib import import_module
 
 from mitmproxy import http
 
-# Add config dir to path so rules package is importable
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from rules import ENVIRONMENTS
-
-
-# --- Build active ruleset from enabled environments ---
-
-def _load_active_environments():
-    envs_str = os.environ.get("FIREWALL_ENVS", ",".join(ENVIRONMENTS.keys()))
-    return [e.strip() for e in envs_str.split(",") if e.strip()]
-
-
-ACTIVE_ENVS = _load_active_environments()
 
 ALLOWED_HOSTS: set[str] = set()
 HOST_HANDLERS: dict[str, callable] = {}
 
-for env_name in ACTIVE_ENVS:
-    env = ENVIRONMENTS.get(env_name)
-    if not env:
-        continue
-    ALLOWED_HOSTS.update(env.get("hosts", set()))
 
-    # If the rule module defines check_request, register it for its hosts
-    module = import_module(f"rules.{env_name}")
-    if hasattr(module, "check_request"):
-        for host in env.get("hosts", set()):
-            HOST_HANDLERS[host] = module.check_request
-
-
-# --- Load user-supplied extension rules (always applied when mounted) ---
-
-USER_RULES_DIR = "/etc/mitmproxy/user-rules"
-
-if os.path.isdir(USER_RULES_DIR):
-    for fname in sorted(os.listdir(USER_RULES_DIR)):
+def _load_rules_from_dir(rules_dir: str) -> None:
+    """Load ENVIRONMENT and optional check_request from every .py file in rules_dir."""
+    if not os.path.isdir(rules_dir):
+        return
+    for fname in sorted(os.listdir(rules_dir)):
         if not fname.endswith(".py"):
             continue
-        fpath = os.path.join(USER_RULES_DIR, fname)
+        fpath = os.path.join(rules_dir, fname)
         spec = importlib.util.spec_from_file_location(fname[:-3], fpath)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
@@ -54,6 +25,16 @@ if os.path.isdir(USER_RULES_DIR):
         if hasattr(module, "check_request"):
             for host in hosts:
                 HOST_HANDLERS[host] = module.check_request
+
+
+# --- Built-in rules: every .py file present in rules/ is active ---
+
+_BUILTIN_RULES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rules")
+_load_rules_from_dir(_BUILTIN_RULES_DIR)
+
+# --- User-supplied extension rules (active when mounted) ---
+
+_load_rules_from_dir("/etc/mitmproxy/user-rules")
 
 
 # --- Main request handler ---
