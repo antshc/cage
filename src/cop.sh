@@ -25,8 +25,15 @@ args=(
 [[ "$ALLOW_ALL_TOOLS" == "true" ]] && args+=(--allow-all-tools)
 [[ "$NO_ASK_USER"     == "true" ]] && args+=(--no-ask-user)
 
-if [[ $# -gt 0 ]]; then
-  args+=(-p "$*")
-fi
+ALIAS=$(basename "$0")
 
-exec copilot "${args[@]}"
+if [[ "$ALIAS" == "copiloty" ]]; then
+  # Interactive session — no prompt, no positional args
+  exec copilot "${args[@]}"
+else
+  # cop — run prompt directly
+  if [[ $# -gt 0 ]]; then
+    args+=(-p "$*")
+  fi
+  exec copilot "${args[@]}"
+fi

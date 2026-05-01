@@ -48,6 +48,7 @@ COPY firewall/ /etc/mitmproxy/config/
 RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chmod +x /usr/local/bin/cop.sh \
     && ln -s /usr/local/bin/cop.sh /usr/local/bin/cop \
+    && ln -s /usr/local/bin/cop.sh /usr/local/bin/copiloty \
     && mkdir -p /home/ubuntu/workspace /var/log/mitmproxy /etc/mitmproxy/config /etc/mitmproxy/user-rules \
     && chmod -R a+rx /etc/mitmproxy \
     && chown -R ubuntu:ubuntu /home/ubuntu
