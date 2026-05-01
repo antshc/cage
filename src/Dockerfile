@@ -45,7 +45,7 @@ RUN HOME=/tmp/mitmproxy-setup mitmdump --version \
 COPY entrypoint.sh /etc/mitmproxy/entrypoint.sh
 COPY cop.sh /usr/local/bin/cop.sh
 COPY firewall/ /etc/mitmproxy/config/
-COPY skills/ /home/ubuntu/.github/skills/
+COPY skills/ /home/ubuntu/.copilot/skills/
 RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chmod +x /usr/local/bin/cop.sh \
     && ln -s /usr/local/bin/cop.sh /usr/local/bin/cop \
