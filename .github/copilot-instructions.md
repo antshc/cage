@@ -6,12 +6,13 @@ Sandboxed container for Copilot agent. All outbound HTTP/HTTPS routed through mi
 
 ## Structure
 
-- `Dockerfile` — Ubuntu 24.04, .NET 8, Node 22, mitmproxy, gh CLI
-- `entrypoint.sh` — root entrypoint: starts mitmproxy (as root), sets iptables rules, drops to `ubuntu` via gosu
-- `config/firewall.py` — mitmproxy addon, loads rules from `config/rules/`
-- `config/rules/` — per-service allowlists (hosts + optional `check_request`)
+- `runtime/Dockerfile` — Ubuntu 24.04, .NET 8, Node 22, mitmproxy, gh CLI
+- `runtime/entrypoint.sh` — root entrypoint: starts mitmproxy (as root), sets iptables rules, drops to `ubuntu` via gosu
+- `runtime/cop` — Copilot CLI wrapper script
+- `firewall/firewall.py` — mitmproxy addon, loads rules from `firewall/rules/`
+- `firewall/rules/` — per-service allowlists (hosts + optional `check_request`)
 - `docker-compose.yml` — build & run config
-- `hello/` — test .NET app
+- `workspace/` — example .NET app (mounted at `/home/ubuntu/workspace`)
 
 ## Build
 
@@ -49,7 +50,7 @@ Review `SECURITY.md` before making changes. Do not introduce:
 - mitmproxy CA trusted at build time (no runtime privilege escalation)
 - iptables NAT REDIRECT forces all HTTP/HTTPS from UID 1000 through proxy
 - `cap_drop: ALL` + `cap_add: NET_ADMIN, SETUID, SETGID` in docker-compose
-- Firewall rules: add file in `config/rules/`, register in `config/rules/__init__.py`
+- Firewall rules: add file in `firewall/rules/`, register in `firewall/rules/__init__.py`
 - Workspace bind-mounted at `/home/ubuntu/workspace`
 - Logs volume at `/var/log/mitmproxy`
 

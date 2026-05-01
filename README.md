@@ -87,10 +87,10 @@ COPILOT_MODEL=claude-haiku-4 \
 
 | Host path | Container path | Purpose |
 |-----------|---------------|---------|
-| `./config` | `/etc/mitmproxy` (read-only) | Firewall rules + entrypoint |
-| `./logs` | `/var/log/mitmproxy` | Mitmproxy logs (timestamped) |
+| `./firewall` | `/etc/mitmproxy/config` (read-only) | Firewall rules |
+| `./logs/mitmproxy` | `/var/log/mitmproxy` | Mitmproxy logs (timestamped) |
 | `./logs/copilot` | `/var/log/copilot` | Copilot CLI logs |
-| `./hello` (or project) | `/home/ubuntu/workspace` | Project workspace |
+| `./workspace` | `/home/ubuntu/workspace` | Project workspace |
 | `./setup.sh` *(optional)* | `/etc/sandbox/setup.sh` (read-only) | Startup script (see below) |
 
 ## Startup script (optional)
@@ -154,12 +154,12 @@ See [SECURITY.md](SECURITY.md).
 
 ## Adding firewall rules
 
-Rules live in `config/rules/`. Each file defines an `ENVIRONMENT` dict with allowed hosts and optionally a `check_request(flow)` function for custom validation.
+Rules live in `firewall/rules/`. Each file defines an `ENVIRONMENT` dict with allowed hosts and optionally a `check_request(flow)` function for custom validation.
 
 ### 1. Create a new rule file
 
 ```python
-# config/rules/myservice.py
+# firewall/rules/myservice.py
 from mitmproxy import http
 
 ENVIRONMENT = {
@@ -247,7 +247,7 @@ def check_request(flow: http.HTTPFlow) -> None:
         flow.response = http.Response.make(403, b"Blocked resource group", {"Content-Type": "text/plain"})
 ```
 
-### 3. Register it in `config/rules/__init__.py`
+### 3. Register it in `firewall/rules/__init__.py`
 
 ```python
 from .myservice import ENVIRONMENT as MYSERVICE
@@ -264,7 +264,7 @@ All registered environments are active by default. To enable only specific ones,
 
 ```bash
 docker run --rm -e FIREWALL_ENVS=copilot,github,myservice \
-  -v "$(pwd)/config:/etc/mitmproxy:ro" \
+  -v "$(pwd)/firewall:/etc/mitmproxy/config:ro" \
   sandbox
 ```
 
