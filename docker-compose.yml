@@ -1,7 +1,7 @@
 services:
   sandbox:
     build:
-      context: ./publish
+      context: ./src
       dockerfile: Dockerfile
     cap_add:
       - NET_ADMIN

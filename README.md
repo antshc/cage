@@ -167,7 +167,7 @@ See [SECURITY.md](SECURITY.md).
 
 ## Firewall rules
 
-Default rules are baked into the image (`publish/firewall/rules/`). Every `.py` file in that directory is active — delete a file and rebuild to disable it. Hosts allowed by default:
+Default rules are baked into the image (`src/firewall/rules/`). Every `.py` file in that directory is active — delete a file and rebuild to disable it. Hosts allowed by default:
 
 | File | Allowed hosts |
 |------|---------------|
@@ -189,7 +189,7 @@ See `runtime/my-rules/example.py` for the full convention and an annotated templ
 
 ### Adding built-in rules (requires rebuild)
 
-Create a new file in `publish/firewall/rules/` and rebuild the image.
+Create a new file in `src/firewall/rules/` and rebuild the image.
 
 #### 1. Create a new rule file
 
