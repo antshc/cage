@@ -3,7 +3,6 @@ services:
     build:
       context: ./src
       dockerfile: Dockerfile
-    network_mode: host
     cap_add:
       - NET_ADMIN
       - SETUID
