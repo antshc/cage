@@ -72,6 +72,8 @@ copiloty() {
     -v "/absolute/path/to/runtime/logs/mitmproxy:/var/log/mitmproxy" \
     -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
     -v "$(pwd):/home/ubuntu/workspace" \
+    # Optional: expose host Docker socket for integration tests (grants full Docker/host access).
+    # -v "/var/run/docker.sock:/var/run/docker.sock" \
     khdevnet/sandbox copiloty
 }
 ```

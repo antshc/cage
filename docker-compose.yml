@@ -19,6 +19,9 @@ services:
       # Mount a folder of CA certificates (.crt/.pem) to trust private registries:
       # - ./certs:/etc/sandbox/certs:ro
       - ./workspace:/home/ubuntu/workspace
-      # - ./my-rules:/etc/mitmproxy/user-rules:ro
       # Optional: mount a setup script to run at startup (as ubuntu, after proxy is ready)
       # - ./setup.sh:/etc/sandbox/setup.sh:ro
+      # Optional: expose the host Docker socket so integration tests can manage containers.
+      # WARNING: This grants full Docker daemon access (equivalent to root on the host).
+      # Only enable for trusted developer workloads — never in production or untrusted CI.
+      # - /var/run/docker.sock:/var/run/docker.sock

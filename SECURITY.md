@@ -11,7 +11,7 @@ Known security gaps and their remediation status:
 | ☑ | 🟠 High | Network allowlist | All HTTP/HTTPS traffic filtered through mitmproxy firewall rules | Done |
 | ☑ | 🟠 High | Non-root user | Container runs as `ubuntu` (UID 1000), not root | Done |
 | ☐ | 🟡 Medium | Host filesystem | Mounted volumes may be writable, agent can modify host files | Use `:ro` on all mounts except workspace |
-| ☐ | 🟡 Medium | Docker socket | If host Docker socket is mounted, agent gets full host access | Never mount `/var/run/docker.sock` |
+| ☑ | 🟡 Medium | Docker socket | If host Docker socket is mounted, agent gets full host access | Opt-in only: mount `/var/run/docker.sock` by uncommenting the volume in `docker-compose.yml`. Risk accepted for trusted test environments; never enable for untrusted agent workloads |
 | ☐ | 🟡 Medium | Environment variables | Secrets passed via env vars are readable by the agent | Minimize env vars, use mounted secrets files |
 | ☑ | 🟡 Medium | Linux capabilities | Container runs with default capabilities | `cap_drop: ALL` + only `cap_add: NET_ADMIN` (for iptables) |
 | ☑ | 🟡 Medium | Read-only config | Firewall config mounted as `:ro` | Done |

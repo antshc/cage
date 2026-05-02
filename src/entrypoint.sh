@@ -69,6 +69,12 @@ iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -m state --state ESTABLISH
 # FILTER: Drop all other outbound from ubuntu (blocks raw TCP, UDP, DNS exfil, etc.)
 iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -j DROP
 
+# --- Fix Docker socket permissions (idempotent; no-op when socket is absent) ---
+if [ -S /var/run/docker.sock ]; then
+  chown root:ubuntu /var/run/docker.sock
+  chmod 660 /var/run/docker.sock
+fi
+
 # --- Drop privileges and exec as ubuntu ---
 export HTTP_PROXY=http://127.0.0.1:$PROXY_PORT
 export HTTPS_PROXY=http://127.0.0.1:$PROXY_PORT
