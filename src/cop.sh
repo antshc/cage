@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# cop — wrapper around the copilot CLI with hardcoded defaults
-# Usage: cop "your prompt here"
-# All positional arguments are joined into the -p prompt string.
+# copiloty — unified wrapper around the copilot CLI
+# Usage: copiloty              → interactive session
+#        copiloty "prompt"     → run with prompt
 
 MODEL="${COPILOT_MODEL:-claude-sonnet-4.6}"
 EFFORT="${COPILOT_EFFORT:-}"
@@ -22,15 +22,8 @@ args=(
 
 [[ -n "$EFFORT" ]] && args+=(--effort "$EFFORT")
 
-ALIAS=$(basename "$0")
-
-if [[ "$ALIAS" == "copiloty" ]]; then
-  # Interactive session — no prompt, no positional args
-  exec copilot "${args[@]}"
-else
-  # cop — run prompt directly
-  if [[ $# -gt 0 ]]; then
-    args+=(-p "$*")
-  fi
-  exec copilot "${args[@]}"
+if [[ $# -gt 0 ]]; then
+  args+=(-p "$*")
 fi
+
+exec copilot "${args[@]}"

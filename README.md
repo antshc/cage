@@ -64,17 +64,6 @@ Add a shell function to your profile so `cop` mounts whichever directory you're 
 # ~/.bashrc or ~/.zshrc
 export COPILOT_GITHUB_TOKEN=<your-github-token>
 
-cop() {
-  docker run --rm \
-    --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
-    --network host \
-    -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
-    -v "/absolute/path/to/runtime/logs/mitmproxy:/var/log/mitmproxy" \
-    -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
-    -v "$(pwd):/home/ubuntu/workspace" \
-    khdevnet/sandbox cop "$@"
-}
-
 copiloty() {
   docker run --rm -it \
     --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
@@ -97,9 +86,13 @@ Then use it from any project directory:
 
 ```bash
 cd /your/project
-cop "explain this codebase"
-cop "fix the failing tests"
+
+# Interactive REPL
 copiloty
+
+# With a prompt
+copiloty "explain this codebase"
+copiloty "fix the failing tests"
 ```
 
 

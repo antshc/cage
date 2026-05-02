@@ -49,9 +49,9 @@ The following are **strictly forbidden** — do not attempt, do not suggest:
   level via iptables regardless of the tool used
 - Any other attempt to route traffic outside the proxy
 
-## Yolo Mode (--no-ask-user)
+## Yolo Mode (--yolo)
 
-This container runs Copilot with `--no-ask-user`. There is no confirmation step
+This container runs Copilot with `--yolo`. There is no confirmation step
 before tool calls. This makes the guardrail above **especially critical**:
 
 - **When a request is blocked: stop the current task immediately and exit.**
