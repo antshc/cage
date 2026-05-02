@@ -69,9 +69,11 @@ iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -m state --state ESTABLISH
 # FILTER: Drop all other outbound from ubuntu (blocks raw TCP, UDP, DNS exfil, etc.)
 iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -j DROP
 
-# --- Ensure log directory is writable by ubuntu (covers host-mounted volumes) ---
-mkdir -p /var/log/copilot
-chown ubuntu:ubuntu /var/log/copilot 2>/dev/null || chmod a+w /var/log/copilot 2>/dev/null || true
+# --- Ensure writable directories are accessible by ubuntu (covers host-mounted volumes) ---
+mkdir -p /var/log/copilot /home/ubuntu/workspace
+for dir in /var/log/copilot /home/ubuntu/workspace; do
+  chown ubuntu:ubuntu "$dir" 2>/dev/null || chmod a+w "$dir" 2>/dev/null || true
+done
 
 # --- Fix Docker socket permissions (idempotent; no-op when socket is absent) ---
 if [ -S /var/run/docker.sock ]; then
