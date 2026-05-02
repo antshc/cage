@@ -47,6 +47,7 @@ mitmdump \
   --set confdir=/etc/mitmproxy/certs \
   -s /etc/mitmproxy/config/firewall.py \
   --set block_global=false \
+  --set block_private=false \
   --set ssl_verify_upstream_trusted_ca=/etc/ssl/certs/ca-certificates.crt \
   >>/var/log/mitmproxy/mitmproxy_$(date +%Y%m%d).log 2>&1 &
 
