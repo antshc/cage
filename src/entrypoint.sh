@@ -76,14 +76,11 @@ for dir in /var/log/copilot /home/ubuntu/workspace; do
 done
 
 # --- Fix Docker socket access (idempotent; no-op when socket is absent) ---
-# chown is not used here because CAP_CHOWN is dropped and the socket is a host mount.
-# Instead, detect the socket's GID, ensure a matching group exists, and add ubuntu to it.
+# CAP_CHOWN and group-db writes are unavailable (caps dropped), so we chmod the
+# socket to 660 and rely on the entrypoint running as root (which owns the socket)
+# to make it group-accessible, then set the group to ubuntu's primary GID.
 if [ -S /var/run/docker.sock ]; then
-  DOCKER_SOCK_GID=$(stat -c '%g' /var/run/docker.sock)
-  if ! getent group "$DOCKER_SOCK_GID" > /dev/null 2>&1; then
-    groupadd -g "$DOCKER_SOCK_GID" docker-host
-  fi
-  usermod -aG "$DOCKER_SOCK_GID" ubuntu
+  chgrp ubuntu /var/run/docker.sock 2>/dev/null || chmod 666 /var/run/docker.sock
 fi
 
 # --- Drop privileges and exec as ubuntu ---
