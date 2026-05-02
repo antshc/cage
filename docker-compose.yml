@@ -21,6 +21,8 @@ services:
       - ./workspace:/home/ubuntu/workspace
       # Optional: mount a setup script to run at startup (as ubuntu, after proxy is ready)
       # - ./setup.sh:/etc/sandbox/setup.sh:ro
+      # Optional: mount host git config for correct git identity inside the container
+      # - ~/.gitconfig:/home/ubuntu/.gitconfig:ro
       # Optional: expose the host Docker socket so integration tests can manage containers.
       # WARNING: This grants full Docker daemon access (equivalent to root on the host).
       # Only enable for trusted developer workloads — never in production or untrusted CI.

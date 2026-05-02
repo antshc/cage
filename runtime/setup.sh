@@ -31,11 +31,4 @@ set -euo pipefail
 # Example: Install skill
 # gh skill install github/awesome-copilot git-commit
 
-# Example: install an npm package globally
-# npm install -g my-tool
-
-# Example: configure git
-# git config --global user.email "agent@example.com"
-# git config --global user.name "Copilot Agent"
-
 echo "setup.sh: custom setup complete"

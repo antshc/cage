@@ -72,6 +72,8 @@ copiloty() {
     -v "/absolute/path/to/runtime/logs/mitmproxy:/var/log/mitmproxy" \
     -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
     -v "$(pwd):/home/ubuntu/workspace" \
+    # Optional: mount host git config for correct git identity inside the container.
+    # -v "$HOME/.gitconfig:/home/ubuntu/.gitconfig:ro" \
     # Optional: expose host Docker socket for integration tests (grants full Docker/host access).
     # -v "/var/run/docker.sock:/var/run/docker.sock" \
     khdevnet/sandbox copiloty
@@ -136,6 +138,19 @@ Proxy and Copilot CLI logs are written to `./logs/` on the host:
 | `./my-rules` *(optional)* | `/etc/mitmproxy/user-rules` (read-only) | Extra firewall rules (extend defaults) |
 | `./certs` *(optional)* | `/etc/sandbox/certs` (read-only) | CA certificates (see below) |
 | `./setup.sh` *(optional)* | `/etc/sandbox/setup.sh` (read-only) | Startup script (see below) |
+| `~/.gitconfig` *(optional)* | `/home/ubuntu/.gitconfig` (read-only) | Host git identity (see below) |
+
+## Git identity (optional)
+
+Git resolves identity natively in priority order:
+1. **Workspace `.git/config`** — repo-local `user.name`/`user.email` (set with `git config user.name` / `git config user.email`, without `--global`) — always wins
+2. **Mounted `~/.gitconfig`** — host global git config, used as a fallback when the repo has no local user config
+
+To mount your host git config, uncomment the line in `docker-compose.yml`:
+
+```yaml
+- ~/.gitconfig:/home/ubuntu/.gitconfig:ro
+```
 
 ## Optional startup script
 
