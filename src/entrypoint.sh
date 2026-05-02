@@ -54,6 +54,11 @@ sleep 1
 
 # --- iptables: force all ubuntu (UID 1000) traffic through mitmproxy ---
 
+# NAT: Exempt RFC1918 destinations (Docker host containers, any port) from proxy redirect
+for cidr in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16; do
+  iptables -t nat -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -p tcp -d "$cidr" -j RETURN
+done
+
 # NAT: Redirect outbound HTTP/HTTPS from ubuntu user to local mitmproxy
 iptables -t nat -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -p tcp --dport 80 \
   -j REDIRECT --to-port "$PROXY_PORT"
@@ -65,6 +70,11 @@ iptables -A OUTPUT -o lo -m owner --uid-owner "$UBUNTU_UID" -j ACCEPT
 
 # FILTER: Allow established/related (for redirected connections)
 iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# FILTER: Allow ubuntu to reach Docker host containers on any port (RFC1918, dynamic ports)
+for cidr in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16; do
+  iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -p tcp -d "$cidr" -j ACCEPT
+done
 
 # FILTER: Drop all other outbound from ubuntu (blocks raw TCP, UDP, DNS exfil, etc.)
 iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -j DROP
@@ -87,7 +97,7 @@ fi
 export HTTP_PROXY=http://127.0.0.1:$PROXY_PORT
 export HTTPS_PROXY=http://127.0.0.1:$PROXY_PORT
 export ALL_PROXY=http://127.0.0.1:$PROXY_PORT
-export NO_PROXY=localhost,127.0.0.1
+export NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 export NODE_EXTRA_CA_CERTS="$NODE_CA_BUNDLE"
 export GH_TOKEN="${GH_TOKEN:-${COPILOT_GITHUB_TOKEN}}"
 

@@ -1,7 +1,28 @@
 import importlib.util
+import ipaddress
 import os
+import socket
 
 from mitmproxy import http
+
+# RFC1918 private address ranges plus loopback — a general networking standard,
+# not specific to Docker. Any host resolving to these ranges is considered internal
+# and bypasses the allowlist (covers Docker containers, VMs, LAN services, etc.).
+_PRIVATE_NETWORKS = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("127.0.0.0/8"),
+]
+
+
+def _is_private_host(host: str) -> bool:
+    """Return True if the host resolves to a private/RFC1918 address."""
+    try:
+        ip = ipaddress.ip_address(socket.gethostbyname(host))
+        return any(ip in net for net in _PRIVATE_NETWORKS)
+    except (socket.gaierror, ValueError):
+        return False
 
 
 ALLOWED_HOSTS: set[str] = set()
@@ -45,6 +66,10 @@ _load_rules_from_dir("/etc/mitmproxy/user-rules")
 
 def request(flow: http.HTTPFlow) -> None:
     host = flow.request.pretty_host.lower()
+
+    # Allow RFC1918/private destinations (Docker host containers, internal services)
+    if _is_private_host(host):
+        return
 
     if host not in ALLOWED_HOSTS and not any(host.endswith(w) for w in ALLOWED_WILDCARDS):
         body = (
