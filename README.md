@@ -189,19 +189,3 @@ Default rules are baked into the image. Allowed hosts by default:
 | pki | `ocsp.digicert.com`, `crl3.digicert.com`, `crl4.digicert.com`, `*.digicert.com`, `s.symcb.com`, `ts-crl.ws.symantec.com` |
 
 To allow additional hosts, add `.py` rule files to `my-rules/` — they extend the defaults without replacing them. See `my-rules/example.py` for the full convention.
-
-```python
-# firewall/rules/__init__.py
-from .myservice import ENVIRONMENT as MYSERVICE
-
-ENVIRONMENTS = {
-    # ... existing entries ...
-    "myservice": MYSERVICE,
-}
-```
-
-Then enable it via `FIREWALL_ENVS`:
-
-```bash
-FIREWALL_ENVS=copilot,github,myservice docker compose run --rm sandbox cop "..."
-```

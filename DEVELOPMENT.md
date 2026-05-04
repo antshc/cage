@@ -37,6 +37,7 @@ Default rules are baked into the image (`src/firewall/rules/`). Every `.py` file
 | `github.py` | `github.com`, `api.github.com`, `objects.githubusercontent.com`, `raw.githubusercontent.com` |
 | `npm.py` | `registry.npmjs.org` |
 | `nuget.py` | `api.nuget.org`, `www.nuget.org` |
+| `pki.py` | `ocsp.digicert.com`, `crl3.digicert.com`, `crl4.digicert.com`, `*.digicert.com`, `s.symcb.com`, `ts-crl.ws.symantec.com` |
 
 ### Adding rules without rebuilding
 
