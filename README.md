@@ -26,39 +26,30 @@ volumes:
 ## 3. Run
 
 ```bash
-# Prompt mode (non-interactive)
-docker compose run --rm sandbox cop "explain this codebase"
-
-# Interactive REPL
-docker compose run --rm -it sandbox copiloty
-
-# docker run
-docker run --rm \
-  --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
-  -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
-  -v "$(pwd)/logs/mitmproxy:/var/log/mitmproxy" \
-  -v "$(pwd)/logs/copilot:/var/log/copilot" \
-  -v "/absolute/path/to/your/project:/home/ubuntu/workspace" \
-  khdevnet/sandbox cop "explain this codebase"
-
-# Interactive Copilot REPL (docker run)
-docker run --rm -it \
-  --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
-  -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
-  -v "$(pwd)/logs/mitmproxy:/var/log/mitmproxy" \
-  -v "$(pwd)/logs/copilot:/var/log/copilot" \
-  -v "/absolute/path/to/your/project:/home/ubuntu/workspace" \
-  khdevnet/sandbox copiloty
-
-# Interactive shell
-docker compose run --rm -it sandbox bash
+# docker run (interactive REPL)
+  docker run --rm -it \
+    --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
+    -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
+    # -e GH_TOKEN="$GH_TOKEN" \
+    -v "/absolute/path/to/runtime/logs/mitmproxy:/var/log/mitmproxy" \
+    -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
+    -v "$(pwd):/home/ubuntu/workspace" \
+    # Optional: mount host git config for correct git identity inside the container.
+    # -v "$HOME/.gitconfig:/home/ubuntu/.gitconfig:ro" \
+    # Optional: expose host Docker socket for integration tests (grants full Docker/host access).
+    # -v "/var/run/docker.sock:/var/run/docker.sock" \
+    # Optional: forward localhost ports to host services (e.g. DynamoDB, Redis):
+    # --sysctl net.ipv4.conf.all.route_localnet=1 \
+    # --add-host host.docker.internal:host-gateway \
+    # -e HOST_DOCKER_DNAT_PORTS=8000 \
+    khdevnet/sandbox copiloty
 ```
 
-> On first run Docker pulls the image automatically (may take a few minutes).
+> You can also pass a prompt directly: `docker run ... khdevnet/sandbox copiloty "explain this codebase"`
 
 ## 4. Register a shell alias (optional)
 
-Add a shell function to your profile so `cop` mounts whichever directory you're currently in as the workspace:
+Add a shell function to your profile so `copiloty` mounts whichever directory you're currently in as the workspace:
 
 ```bash
 # ~/.bashrc or ~/.zshrc
@@ -76,6 +67,10 @@ copiloty() {
     # -v "$HOME/.gitconfig:/home/ubuntu/.gitconfig:ro" \
     # Optional: expose host Docker socket for integration tests (grants full Docker/host access).
     # -v "/var/run/docker.sock:/var/run/docker.sock" \
+    # Optional: forward localhost ports to host services (e.g. DynamoDB, Redis):
+    # --sysctl net.ipv4.conf.all.route_localnet=1 \
+    # --add-host host.docker.internal:host-gateway \
+    # -e HOST_DOCKER_DNAT_PORTS=8000 \
     khdevnet/sandbox copiloty
 }
 ```
@@ -118,7 +113,7 @@ All Copilot CLI flags are configurable via environment variables — set them in
 ```bash
 # Use a more powerful model with high effort
 COPILOT_MODEL=claude-sonnet-4.6 COPILOT_EFFORT=high \
-  docker compose run --rm sandbox cop "refactor the auth module"
+  docker compose run --rm -it sandbox copiloty
 ```
 
 ## Logs
