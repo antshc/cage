@@ -113,6 +113,7 @@ All Copilot CLI flags are configurable via environment variables — set them in
 | `COPILOT_LOG_LEVEL` | `info` | Log verbosity: `none`, `error`, `warning`, `info`, `debug`, `all` |
 | `COPILOT_LOG_DIR` | `/var/log/copilot` | Directory for Copilot logs |
 | `SANDBOX_TAG` | `latest` | Docker Hub image tag to pull |
+| `HOST_DOCKER_DNAT_PORTS` | *(unset)* | Comma-separated ports/ranges forwarded from `127.0.0.1` to `host.docker.internal`. E.g. `8000` (DynamoDB), `8000,5432,6379`, `9200-9300` (range). Requires `net.ipv4.conf.all.route_localnet=1` (already set in docker-compose). |
 
 ```bash
 # Use a more powerful model with high effort

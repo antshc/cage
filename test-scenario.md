@@ -35,12 +35,13 @@ docker run --rm \
   --sysctl net.ipv4.conf.all.route_localnet=1 \
   --add-host host.docker.internal:host-gateway \
   -e COPILOT_GITHUB_TOKEN="${COPILOT_GITHUB_TOKEN}" \
+  -e HOST_DOCKER_DNAT_PORTS=8000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v "$(pwd)/workspace":/home/ubuntu/workspace \
   -v "$(pwd)/logs/mitmproxy":/var/log/mitmproxy \
   -v "$(pwd)/logs/copilot":/var/log/copilot \
   sandbox \
-  dotnet test DockerConnectivity.Tests/ \
+  dotnet test /home/ubuntu/workspace/DockerConnectivity.Tests/ \
     --filter "Category=Integration" \
     --logger "console;verbosity=normal"
 ```
@@ -53,6 +54,9 @@ The entrypoint runs as root and installs this iptables rule before dropping to `
 iptables -t nat -A OUTPUT -p tcp -d 127.0.0.1 --dport 8000 \
   -j DNAT --to-destination <host-gateway>:8000
 ```
+
+This rule is now driven by `HOST_DOCKER_DNAT_PORTS=8000` passed to the container.
+See README for the full format (multiple ports, ranges).
 
 `DynamoDbConnectivityTests` then:
 1. Connects to the Docker socket and starts a `amazon/dynamodb-local:3.0.0` container
