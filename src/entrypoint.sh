@@ -100,6 +100,12 @@ if [ -n "${HOST_DOCKER_DNAT_PORTS:-}" ]; then
       iptables -t nat -A POSTROUTING \
         -p tcp -d "$HOST_DOCKER_IP" --dport "$_iptables_dport" \
         -j MASQUERADE
+      # Allow UID 1000 to reach the DNAT destination after rewrite
+      # (insert before the final DROP rule so re-addressed packets are not dropped)
+      iptables -I OUTPUT \
+        -m owner --uid-owner "$UBUNTU_UID" \
+        -p tcp -d "$HOST_DOCKER_IP" --dport "$_iptables_dport" \
+        -j ACCEPT
       echo "DNAT: 127.0.0.1:${_entry} -> ${HOST_DOCKER_IP}:${_entry}"
     done
   else
