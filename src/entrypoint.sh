@@ -6,7 +6,7 @@ set -euo pipefail
 #
 # Requires: NET_ADMIN capability, iptables, gosu
 
-PROXY_PORT=8080
+PROXY_PORT=18080
 UBUNTU_UID=1000
 
 # --- Validate prerequisites ---
@@ -67,10 +67,8 @@ iptables -A OUTPUT -o lo -m owner --uid-owner "$UBUNTU_UID" -j ACCEPT
 # FILTER: Allow established/related (for redirected connections)
 iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-# FILTER: Allow ubuntu to reach Docker host containers on any port (RFC1918, dynamic ports)
-for cidr in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16; do
-  iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -p tcp -d "$cidr" -j ACCEPT
-done
+# FILTER: Allow ICMP (ping) from ubuntu (mitmproxy cannot proxy ICMP)
+iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -p icmp -j ACCEPT
 
 # FILTER: Drop all other outbound from ubuntu (blocks raw TCP, UDP, DNS exfil, etc.)
 iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -j DROP

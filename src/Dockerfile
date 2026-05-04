@@ -1,30 +1,20 @@
-FROM ubuntu:24.04
+FROM khdevnet/ubuntubase2404:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV DOTNET_NOLOGO=1
 
-# Install system dependencies and .NET SDK 8.0.411 via the official dotnet-install script
+# Install .NET SDK 8.0.411 via the official dotnet-install script
 # (apt repos for Ubuntu 24.04 only carry 8.0.1xx; exact feature-band versions require the script)
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        curl wget git jq ca-certificates gnupg unzip bash openssh-client \
-        python3 python3-pip python3-venv \
-        libicu74 libssl3t64 \
-        iptables gosu \
-    && curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && chmod +x /tmp/dotnet-install.sh \
     && /tmp/dotnet-install.sh --version 8.0.411 --install-dir /usr/share/dotnet \
     && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
     && rm /tmp/dotnet-install.sh \
-    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
     && npm install -g @github/copilot \
     && python3 -m venv /opt/mitmproxy \
     && /opt/mitmproxy/bin/pip install --no-cache-dir mitmproxy \
-    && ln -s /opt/mitmproxy/bin/mitmdump /usr/local/bin/mitmdump \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && ln -s /opt/mitmproxy/bin/mitmdump /usr/local/bin/mitmdump
 
 # Install GitHub CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
@@ -78,9 +68,9 @@ RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chown root:root /home/ubuntu/.mitmproxy \
     && chmod 750 /home/ubuntu/.mitmproxy
 
-ENV HTTP_PROXY=http://127.0.0.1:8080
-ENV HTTPS_PROXY=http://127.0.0.1:8080
-ENV ALL_PROXY=http://127.0.0.1:8080
+ENV HTTP_PROXY=http://127.0.0.1:18080
+ENV HTTPS_PROXY=http://127.0.0.1:18080
+ENV ALL_PROXY=http://127.0.0.1:18080
 ENV NO_PROXY=localhost,127.0.0.1
 ENV DOTNET_ROOT=/usr/share/dotnet
 
