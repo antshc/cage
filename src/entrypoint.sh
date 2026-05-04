@@ -80,6 +80,23 @@ done
 # FILTER: Drop all other outbound from ubuntu (blocks raw TCP, UDP, DNS exfil, etc.)
 iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -j DROP
 
+# --- iptables DNAT: redirect 127.0.0.1:8000 to host.docker.internal:8000 (DynamoDB) ---
+# Mirrors the curl-router PoC pattern: OUTPUT DNAT + POSTROUTING MASQUERADE.
+# Requires: --sysctl net.ipv4.conf.all.route_localnet=1 (set in docker-compose.yml)
+DYNAMO_DNAT_PORT=8000
+HOST_DOCKER_IP=$(getent hosts host.docker.internal | awk '{ print $1 }')
+if [ -n "$HOST_DOCKER_IP" ]; then
+  iptables -t nat -A OUTPUT \
+    -p tcp -d 127.0.0.1 --dport "$DYNAMO_DNAT_PORT" \
+    -j DNAT --to-destination "${HOST_DOCKER_IP}:${DYNAMO_DNAT_PORT}"
+  iptables -t nat -A POSTROUTING \
+    -p tcp -d "$HOST_DOCKER_IP" --dport "$DYNAMO_DNAT_PORT" \
+    -j MASQUERADE
+  echo "DNAT: 127.0.0.1:${DYNAMO_DNAT_PORT} -> ${HOST_DOCKER_IP}:${DYNAMO_DNAT_PORT}"
+else
+  echo "WARNING: host.docker.internal not resolved; DNAT for port ${DYNAMO_DNAT_PORT} skipped" >&2
+fi
+
 # --- Ensure writable directories are accessible by ubuntu (covers host-mounted volumes) ---
 mkdir -p /var/log/copilot /home/ubuntu/workspace
 for dir in /var/log/copilot /home/ubuntu/workspace; do
