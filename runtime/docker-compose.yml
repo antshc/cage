@@ -10,7 +10,7 @@ services:
     environment:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
       - COPILOT_MODEL=${COPILOT_MODEL:-claude-haiku-4.5}
-      # Optional: separate token for gh CLI (defaults to COPILOT_GITHUB_TOKEN if unset)
+      # GitHub CLI (gh) auth: set GH_TOKEN to enable gh CLI inside the container
       # - GH_TOKEN=${GH_TOKEN}
       # Optional: forward localhost ports to host.docker.internal (e.g. DynamoDB, Redis, Postgres)
       # Comma-separated ports and/or dash ranges: "8000", "8000,5432", "9200-9300"

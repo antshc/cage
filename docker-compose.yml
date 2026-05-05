@@ -16,7 +16,8 @@ services:
     environment:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
       - COPILOT_MODEL=${COPILOT_MODEL:-claude-sonnet-4.6}
-      # Optional: separate token for gh CLI (defaults to COPILOT_GITHUB_TOKEN if unset)
+      # GitHub CLI (gh) auth: either mount ~/.config/gh (preferred) or set GH_TOKEN.
+      # Mount: uncomment the volume below. Token: uncomment GH_TOKEN (defaults to COPILOT_GITHUB_TOKEN if unset).
       # - GH_TOKEN=${GH_TOKEN}
       # Optional: forward localhost ports to host.docker.internal (e.g. DynamoDB, Redis, Postgres)
       # Comma-separated ports and/or dash ranges: "8000", "8000,5432", "9200-9300"
@@ -35,3 +36,5 @@ services:
       # WARNING: This grants full Docker daemon access (equivalent to root on the host).
       # Only enable for trusted developer workloads — never in production or untrusted CI.
       - /var/run/docker.sock:/var/run/docker.sock
+      # Required for GitHub CLI (gh) authentication — mount host gh config to enable GitHub access inside the container
+      # - /home/dev/.config/gh:/home/dev/.config/gh:ro

@@ -133,7 +133,6 @@ export HTTPS_PROXY=http://127.0.0.1:$PROXY_PORT
 export ALL_PROXY=http://127.0.0.1:$PROXY_PORT
 export NO_PROXY=localhost,127.0.0.1
 export NODE_EXTRA_CA_CERTS="$NODE_CA_BUNDLE"
-export GH_TOKEN="${GH_TOKEN:-${COPILOT_GITHUB_TOKEN}}"
 
 # --- Optional setup script ---
 SETUP_SCRIPT=/etc/sandbox/setup.sh
