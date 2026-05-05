@@ -9,11 +9,18 @@ services:
       - SETGID
     cap_drop:
       - ALL
+    sysctls:
+      net.ipv4.conf.all.route_localnet: 1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
       - COPILOT_MODEL=${COPILOT_MODEL:-claude-sonnet-4.6}
       # Optional: separate token for gh CLI (defaults to COPILOT_GITHUB_TOKEN if unset)
       # - GH_TOKEN=${GH_TOKEN}
+      # Optional: forward localhost ports to host.docker.internal (e.g. DynamoDB, Redis, Postgres)
+      # Comma-separated ports and/or dash ranges: "8000", "8000,5432", "9200-9300"
+      # - HOST_DOCKER_DNAT_PORTS=${HOST_DOCKER_DNAT_PORTS}
     volumes:
       - ./logs/mitmproxy:/var/log/mitmproxy
       - ./logs/copilot:/var/log/copilot

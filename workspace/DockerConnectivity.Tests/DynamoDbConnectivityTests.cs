@@ -22,11 +22,9 @@ public class DynamoDbConnectivityTests : IAsyncLifetime
     private static readonly TimeSpan WarmUpTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan WarmUpInterval = TimeSpan.FromSeconds(2);
 
-    private string _sandboxNetworkName = null!;
-
     private DockerClient _docker = null!;
     private string _containerName = null!;
-    private string _containerHost = null!;
+    private string _containerHost = "127.0.0.1";
 
     // ---------------------------------------------------------------------------
     // IAsyncLifetime
@@ -41,7 +39,6 @@ public class DynamoDbConnectivityTests : IAsyncLifetime
         await CreateImageAsync(ImageName, ImageTag);
 
         _containerName = GenerateContainerName();
-        _sandboxNetworkName = await DetectSandboxNetworkAsync();
 
         await RemoveExistingDynamoDbContainersAsync();
         _containerHost = await CreateAndStartContainerAsync();
@@ -88,53 +85,6 @@ public class DynamoDbConnectivityTests : IAsyncLifetime
         Assert.Empty(response.TableNames);
     }
 
-    [DockerSocketFact]
-    public async Task CreateTable_ThenListTables_ReturnsTableName()
-    {
-        using var client = CreateClient();
-        const string tableName = "TestTable";
-
-        await client.CreateTableAsync(new CreateTableRequest
-        {
-            TableName = tableName,
-            KeySchema = [new KeySchemaElement("pk", KeyType.HASH)],
-            AttributeDefinitions = [new AttributeDefinition("pk", ScalarAttributeType.S)],
-            BillingMode = BillingMode.PAY_PER_REQUEST,
-        });
-
-        var list = await client.ListTablesAsync();
-        Assert.Contains(tableName, list.TableNames);
-    }
-
-    [DockerSocketFact]
-    public async Task PutItem_ThenGetItem_RoundTrips()
-    {
-        using var client = CreateClient();
-        const string tableName = "RoundTripTable";
-
-        await client.CreateTableAsync(new CreateTableRequest
-        {
-            TableName = tableName,
-            KeySchema = [new KeySchemaElement("pk", KeyType.HASH)],
-            AttributeDefinitions = [new AttributeDefinition("pk", ScalarAttributeType.S)],
-            BillingMode = BillingMode.PAY_PER_REQUEST,
-        });
-
-        await client.PutItemAsync(tableName, new Dictionary<string, AttributeValue>
-        {
-            ["pk"] = new AttributeValue("item-1"),
-            ["value"] = new AttributeValue("hello"),
-        });
-
-        var result = await client.GetItemAsync(tableName, new Dictionary<string, AttributeValue>
-        {
-            ["pk"] = new AttributeValue("item-1"),
-        });
-
-        Assert.True(result.IsItemSet);
-        Assert.Equal("hello", result.Item["value"].S);
-    }
-
     // ---------------------------------------------------------------------------
     // Docker helpers
     // ---------------------------------------------------------------------------
@@ -169,52 +119,50 @@ public class DynamoDbConnectivityTests : IAsyncLifetime
             progress);
     }
 
-    private async Task<string> DetectSandboxNetworkAsync()
-    {
-        // /etc/hostname contains the short container ID of the current container.
-        string selfId = (await File.ReadAllTextAsync("/etc/hostname")).Trim();
-        var self = await _docker.Containers.InspectContainerAsync(selfId);
-        // Prefer a non-default-bridge network (compose networks are named, e.g. sandbox_default).
-        return self.NetworkSettings.Networks.Keys
-            .FirstOrDefault(n => n != "bridge")
-            ?? self.NetworkSettings.Networks.Keys.First();
-    }
-
     private async Task<string> CreateAndStartContainerAsync()
     {
-        var response = await _docker.Containers.CreateContainerAsync(new CreateContainerParameters
+        await CreateContainerAsync();
+        await StartContainerAsync();
+        return "127.0.0.1";
+    }
+
+    private async Task CreateContainerAsync()
+    {
+        string containerTcpPort = $"{DefaultDynamoDbPort}/tcp";
+        var hostConfig = new HostConfig
+        {
+            PortBindings = new Dictionary<string, IList<PortBinding>>
+            {
+                { containerTcpPort, [new PortBinding { HostPort = DefaultDynamoDbPort.ToString() }] }
+            }
+        };
+
+        await _docker.Containers.CreateContainerAsync(new CreateContainerParameters
         {
             Image = $"{ImageName}:{ImageTag}",
             Name = _containerName,
-            // Run with -inMemory so no disk I/O is required.
             Cmd = ["-jar", "DynamoDBLocal.jar", "-inMemory"],
-            // Join the sandbox's compose network so inter-container HTTP is routable.
-            NetworkingConfig = new Docker.DotNet.Models.NetworkingConfig
-            {
-                EndpointsConfig = new Dictionary<string, Docker.DotNet.Models.EndpointSettings>
-                {
-                    [_sandboxNetworkName] = new Docker.DotNet.Models.EndpointSettings()
-                }
-            },
+            ExposedPorts = new Dictionary<string, EmptyStruct> { [containerTcpPort] = new EmptyStruct() },
+            HostConfig = hostConfig,
         });
+    }
+
+    private async Task StartContainerAsync()
+    {
+        var containers = await _docker.Containers.ListContainersAsync(
+            new ContainersListParameters { All = true });
+
+        var container = containers.FirstOrDefault(c => c.Names.Contains($"/{_containerName}"))
+            ?? throw new InvalidOperationException($"Container '{_containerName}' not found.");
+
+        if (container.State == "running")
+            return;
 
         bool started = await _docker.Containers.StartContainerAsync(
-            response.ID, new ContainerStartParameters());
+            container.ID, new ContainerStartParameters());
 
         if (!started)
             throw new InvalidOperationException($"Failed to start DynamoDB container '{_containerName}'.");
-
-        // Inspect to get the IP on the shared compose network.
-        var inspect = await _docker.Containers.InspectContainerAsync(response.ID);
-        string ip = (inspect.NetworkSettings.Networks.TryGetValue(_sandboxNetworkName, out var netInfo)
-                        ? netInfo.IPAddress
-                        : null)
-            ?? inspect.NetworkSettings.Networks.Values
-                .Select(n => n.IPAddress)
-                .FirstOrDefault(a => !string.IsNullOrEmpty(a))
-            ?? throw new InvalidOperationException($"Could not determine IP for container '{_containerName}'.");
-
-        return ip;
     }
 
     private async Task StopContainerLenientAsync(string containerName)

@@ -13,8 +13,8 @@
 # Available environment variables:
 #   COPILOT_GITHUB_TOKEN  — GitHub token for Copilot
 #   GH_TOKEN              — GitHub token for gh CLI (same value)
-#   HTTP_PROXY            — http://127.0.0.1:8080
-#   HTTPS_PROXY           — http://127.0.0.1:8080
+#   HTTP_PROXY            — http://127.0.0.1:18080
+#   HTTPS_PROXY           — http://127.0.0.1:18080
 #   NODE_EXTRA_CA_CERTS   — path to mitmproxy CA cert (trusted by Node.js)
 #
 set -euo pipefail
