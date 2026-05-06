@@ -7,11 +7,23 @@ services:
       - SETGID
     cap_drop:
       - ALL
+    sysctls:
+      net.ipv4.conf.all.route_localnet: 1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
-      - COPILOT_MODEL=${COPILOT_MODEL:-claude-haiku-4.5}
-      # GitHub CLI (gh) auth: set GH_TOKEN to enable gh CLI inside the container
+      - COPILOT_MODEL=${COPILOT_MODEL:-claude-sonnet-4.6}
+      # GitHub CLI (gh) auth: mount ~/.config/gh (preferred) OR set GH_TOKEN.
       # - GH_TOKEN=${GH_TOKEN}
+      # Optional: effort level: low, medium, high (not all models support it)
+      # - COPILOT_EFFORT=${COPILOT_EFFORT}
+      # Optional: output format: text, json, stream-json
+      # - COPILOT_OUTPUT_FORMAT=${COPILOT_OUTPUT_FORMAT:-text}
+      # Optional: log verbosity: none, error, warning, info, debug, all
+      # - COPILOT_LOG_LEVEL=${COPILOT_LOG_LEVEL:-info}
+      # Optional: directory for Copilot logs
+      # - COPILOT_LOG_DIR=${COPILOT_LOG_DIR:-/var/log/copilot}
       # Optional: forward localhost ports to host.docker.internal (e.g. DynamoDB, Redis, Postgres)
       # Comma-separated ports and/or dash ranges: "8000", "8000,5432", "9200-9300"
       # - HOST_DOCKER_DNAT_PORTS=${HOST_DOCKER_DNAT_PORTS}
@@ -27,6 +39,8 @@ services:
       # - ./setup.sh:/etc/sandbox/setup.sh:ro
       # Optional: mount host git config for correct git identity inside the container:
       # - ~/.gitconfig:/home/ubuntu/.gitconfig:ro
+      # Optional: GitHub CLI (gh) auth — mount host gh config:
+      # - ~/.config/gh:/home/ubuntu/.config/gh:ro
       # Optional: expose the host Docker socket so integration tests can manage containers.
       # WARNING: This grants full Docker daemon access (equivalent to root on the host).
       # Only enable for trusted developer workloads — never in production or untrusted CI.
