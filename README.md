@@ -51,7 +51,16 @@ volumes:
 
 ## 4. Register a shell alias (optional)
 
-Add a shell function to your profile so `copiloty` mounts whichever directory you're currently in as the workspace:
+If you're using the `docker compose` setup (recommended), add this alias to your profile:
+
+```bash
+# ~/.bashrc or ~/.zshrc
+export COPILOT_GITHUB_TOKEN=<your-github-token>
+
+alias ralph='COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" WORKSPACE="$(pwd)" docker compose -f ~/.ralph-zvm/docker-compose.yml run --rm --service-ports sandbox'
+```
+
+Alternatively, add a shell function to your profile so `copiloty` mounts whichever directory you're currently in as the workspace:
 
 ```bash
 # ~/.bashrc or ~/.zshrc

@@ -7,6 +7,8 @@ services:
       - SETGID
     cap_drop:
       - ALL
+    stdin_open: true   # -i
+    tty: true          # -t
     sysctls:
       net.ipv4.conf.all.route_localnet: 1
     extra_hosts:
@@ -14,6 +16,7 @@ services:
     environment:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
       - COPILOT_MODEL=${COPILOT_MODEL:-claude-sonnet-4.6}
+      # - HOST_DOCKER_DNAT_PORTS=${HOST_DOCKER_DNAT_PORTS}
       # GitHub CLI (gh) auth: mount ~/.config/gh (preferred) OR set GH_TOKEN.
       # - GH_TOKEN=${GH_TOKEN}
       # Optional: effort level: low, medium, high (not all models support it)
@@ -26,7 +29,9 @@ services:
       # - COPILOT_LOG_DIR=${COPILOT_LOG_DIR:-/var/log/copilot}
       # Optional: forward localhost ports to host.docker.internal (e.g. DynamoDB, Redis, Postgres)
       # Comma-separated ports and/or dash ranges: "8000", "8000,5432", "9200-9300"
-      # - HOST_DOCKER_DNAT_PORTS=${HOST_DOCKER_DNAT_PORTS}
+    ports:
+      - "2002-2020:2002-2020"  
+    command: bash
     volumes:
       - ./logs/mitmproxy:/var/log/mitmproxy
       - ./logs/copilot:/var/log/copilot
@@ -34,7 +39,7 @@ services:
       # Mount a folder of CA certificates (.crt/.pem) to trust private registries:
       # - ./certs:/etc/sandbox/certs:ro
       # Mount your project workspace:
-      # - /path/to/your/project:/home/ubuntu/workspace
+      # - ${WORKSPACE:-.}:/home/ubuntu/workspace
       # Optional: run custom setup steps at startup (as ubuntu, after proxy is ready):
       # - ./setup.sh:/etc/sandbox/setup.sh:ro
       # Optional: mount host git config for correct git identity inside the container:
