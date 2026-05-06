@@ -8,6 +8,7 @@ ENVIRONMENT = {
         "crl4.digicert.com",
         "s.symcb.com",
         "ts-crl.ws.symantec.com",
+        "www.microsoft.com",
     },
     "wildcards": {
         "*.digicert.com",

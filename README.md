@@ -183,11 +183,12 @@ Default rules are baked into the image. Allowed hosts by default:
 
 | Rule | Hosts |
 |------|-------|
-| azure | `login.microsoftonline.com`, `microsoftonline.com` |
+| azure | `login.microsoftonline.com`, `microsoftonline.com`, `management.azure.com` |
 | copilot | `api.githubcopilot.com`, `api.business.githubcopilot.com`, `copilot-proxy.githubusercontent.com`, `telemetry.business.githubcopilot.com`, `default.exp-tas.com`, `api.github.com` |
-| github | `github.com`, `api.github.com`, `objects.githubusercontent.com`, `raw.githubusercontent.com` |
+| dotnet | `dot.net`, `dotnetcli.azureedge.net` |
+| github | `github.com`, `api.github.com`, `objects.githubusercontent.com`, `raw.githubusercontent.com`, `release-assets.githubusercontent.com` |
 | npm | `registry.npmjs.org` |
 | nuget | `api.nuget.org`, `www.nuget.org` |
-| pki | `ocsp.digicert.com`, `crl3.digicert.com`, `crl4.digicert.com`, `*.digicert.com`, `s.symcb.com`, `ts-crl.ws.symantec.com` |
+| pki | `ocsp.digicert.com`, `crl3.digicert.com`, `crl4.digicert.com`, `*.digicert.com`, `s.symcb.com`, `ts-crl.ws.symantec.com`, `www.microsoft.com` |
 
 To allow additional hosts, add `.py` rule files to `my-rules/` — they extend the defaults without replacing them. See `my-rules/example.py` for the full convention.

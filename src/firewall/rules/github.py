@@ -4,5 +4,6 @@ ENVIRONMENT = {
         "api.github.com",
         "objects.githubusercontent.com",
         "raw.githubusercontent.com",
+        "release-assets.githubusercontent.com",
     },
 }

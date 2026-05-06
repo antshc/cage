@@ -1,7 +1,7 @@
 import importlib.util
 import os
 
-from mitmproxy import http
+from mitmproxy import ctx, http
 
 
 ALLOWED_HOSTS: set[str] = set()
@@ -47,6 +47,7 @@ def request(flow: http.HTTPFlow) -> None:
     host = flow.request.pretty_host.lower()
 
     if host not in ALLOWED_HOSTS and not any(host.endswith(w) for w in ALLOWED_WILDCARDS):
+        ctx.log.warn(f"[BLOCKED] {flow.request.method} {flow.request.pretty_url}")
         body = (
             f"[Sandbox Firewall] Access to '{host}' is blocked.\n"
             f"This is not a rejection from the remote site — the sandbox proxy blocked the request.\n"
