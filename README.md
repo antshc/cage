@@ -60,6 +60,7 @@ export COPILOT_GITHUB_TOKEN=<your-github-token>
 copiloty() {
   docker run --rm -it \
     --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
+    # -p 2000-2020:2000-2020 \
     -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
     # GitHub CLI (gh) auth: mount ~/.config/gh (preferred) OR set GH_TOKEN.
     # -v "$HOME/.config/gh:/home/ubuntu/.config/gh:ro" \
