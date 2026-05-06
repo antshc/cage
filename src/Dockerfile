@@ -58,9 +58,9 @@ RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chmod -R a+rx /etc/mitmproxy \
     && chown -R root:root /home/ubuntu \
     && chmod 755 /home/ubuntu \
-    && mkdir -p /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget/NuGet /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet \
-    && chown ubuntu:ubuntu /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget /home/ubuntu/.nuget/NuGet /home/ubuntu/.local /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet \
-    && chmod 755 /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget /home/ubuntu/.nuget/NuGet /home/ubuntu/.local /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet \
+    && mkdir -p /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget/NuGet /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet /home/ubuntu/.docker \
+    && chown ubuntu:ubuntu /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget /home/ubuntu/.nuget/NuGet /home/ubuntu/.local /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet /home/ubuntu/.docker \
+    && chmod 755 /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget /home/ubuntu/.nuget/NuGet /home/ubuntu/.local /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet /home/ubuntu/.docker \
     && printf '// User settings belong in settings.json.\n// This file is managed automatically.\n{\n  "trustedFolders": ["/home/ubuntu/workspace"]\n}\n' \
         > /home/ubuntu/.copilot/config.json \
     && chown ubuntu:ubuntu /home/ubuntu/.copilot/config.json \
