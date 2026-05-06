@@ -62,6 +62,17 @@ def request(flow: http.HTTPFlow) -> None:
         )
         return
 
+    ctx.log.info(f"[ALLOWED] {flow.request.method} {flow.request.pretty_url}")
+
     handler = HOST_HANDLERS.get(host)
     if handler:
         handler(flow)
+
+
+def response(flow: http.HTTPFlow) -> None:
+    host = flow.request.pretty_host.lower()
+    if flow.response and host in ALLOWED_HOSTS or any(host.endswith(w) for w in ALLOWED_WILDCARDS):
+        ctx.log.info(
+            f"[RESPONSE] {flow.request.method} {flow.request.pretty_url}"
+            f" << {flow.response.status_code} {flow.response.reason}"
+        )
