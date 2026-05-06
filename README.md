@@ -74,7 +74,7 @@ copiloty() {
     # Optional: forward localhost ports to host services (e.g. DynamoDB, Redis):
     # --sysctl net.ipv4.conf.all.route_localnet=1 \
     # --add-host host.docker.internal:host-gateway \
-    # -e HOST_DOCKER_DNAT_PORTS=8000 \
+    # -e HOST_DOCKER_DNAT_PORTS=8000-8100,9500-9600,2000,2001,10002 \
     khdevnet/sandbox copiloty
 }
 ```
@@ -183,6 +183,7 @@ Default rules are baked into the image. Allowed hosts by default:
 
 | Rule | Hosts |
 |------|-------|
+| azure | `login.microsoftonline.com`, `microsoftonline.com` |
 | copilot | `api.githubcopilot.com`, `api.business.githubcopilot.com`, `copilot-proxy.githubusercontent.com`, `telemetry.business.githubcopilot.com`, `default.exp-tas.com`, `api.github.com` |
 | github | `github.com`, `api.github.com`, `objects.githubusercontent.com`, `raw.githubusercontent.com` |
 | npm | `registry.npmjs.org` |
