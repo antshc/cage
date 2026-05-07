@@ -3,22 +3,9 @@ using Docker.DotNet;
 
 namespace DockerDotNet.Tests;
 
-/// <summary>Skips the test when the Docker socket is not available on the host.</summary>
-public sealed class DockerSocketFactAttribute : FactAttribute
-{
-    private const string DockerSocketPath = "/var/run/docker.sock";
-
-    public DockerSocketFactAttribute()
-    {
-        if (!File.Exists(DockerSocketPath))
-            Skip = "Docker socket not available";
-    }
-}
-
 public class DockerDotNetConnectivityTests
 {
-    [Trait("Category", "Integration")]
-    [DockerSocketFact]
+    [Fact]
     public async Task PingAsync_WhenSocketAvailable_Succeeds()
     {
         using DockerClient client = new DockerClientConfiguration().CreateClient();
@@ -30,8 +17,7 @@ public class DockerDotNetConnectivityTests
 
 public class DockerCliConnectivityTests
 {
-    [Trait("Category", "Integration")]
-    [DockerSocketFact]
+    [Fact]
     public async Task DockerInfo_WhenSocketAvailable_ExitsZeroWithOutput()
     {
         var psi = new ProcessStartInfo("docker", "info --format \"{{.ServerVersion}}\"")

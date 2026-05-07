@@ -11,8 +11,9 @@ Sandboxed container for Copilot agent. All outbound HTTP/HTTPS routed through mi
 - `src/copilot-alias.sh` — Copilot CLI wrapper script
 - `src/firewall/firewall.py` — mitmproxy addon, loads rules from `firewall/rules/`
 - `src/firewall/rules/` — per-service allowlists (hosts + optional `check_request`)
-- `docker-compose.yml` — build & run config (builds image locally from `src/`)
+- `docker-compose.yml` — base build & run config (builds image locally from `src/`)
 - `docker-compose.hub.yml` — override to use pre-built Docker Hub image instead of building
+- `docker-compose.<scenario>.yml` — scenario-specific overlay (e.g. `docker-dotnet`, `dynamodb`); combined with base via `-f docker-compose.yml -f docker-compose.<scenario>.yml`
 - `workspace/` — example .NET app (mounted at `/home/ubuntu/workspace`)
 - `runtime/` — minimal distributable folder: users copy this to their machine to get started without building. Contains `docker-compose.yml` (hub image), `firewall/`, and `logs/`.
 
@@ -22,35 +23,9 @@ Sandboxed container for Copilot agent. All outbound HTTP/HTTPS routed through mi
 docker compose build
 ```
 
-## Test dotnet app
+## Testing
 
-```bash
-docker compose run --rm sandbox dotnet run
-```
-
-### Test Copilot connectivity
-
-```bash
-docker compose run --rm sandbox cop "hello world"
-```
-
-Requires `COPILOT_GITHUB_TOKEN` env var set on the host (loaded via docker-compose).
-
-### Use pre-built Hub image (skip build)
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.hub.yml run --rm sandbox cop "hello world"
-```
-
-### Distribute to end users
-
-Give users the `runtime/` folder. It contains only what's needed to pull and run without building:
-
-```bash
-cd runtime
-export COPILOT_GITHUB_TOKEN=<token>
-docker compose run --rm sandbox cop "hello world"
-```
+See `TESTING.md` for test scenarios covering the `hello`, `docker-dotnet`, and `dynamodb` workspaces, including the exact `docker compose` commands and any prerequisites (Docker socket, DNAT port forwarding).
 
 ## Security
 

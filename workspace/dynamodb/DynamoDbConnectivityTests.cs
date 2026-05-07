@@ -12,7 +12,6 @@ namespace DynamoDb.Tests;
 /// dynamic port allocation with retry on collision, health-check via ListTablesAsync,
 /// and a CreateConfiguration() helper that exposes DYNAMO_PORT for the system under test.
 /// </summary>
-[Trait("Category", "Integration")]
 public class DynamoDbConnectivityTests : IAsyncLifetime
 {
     private const string ImageName = "amazon/dynamodb-local";
@@ -74,7 +73,7 @@ public class DynamoDbConnectivityTests : IAsyncLifetime
     // Tests
     // ---------------------------------------------------------------------------
 
-    [DockerSocketFact]
+    [Fact]
     public async Task ListTables_OnFreshInstance_ReturnsEmptyList()
     {
         using var client = CreateClient();

@@ -22,13 +22,15 @@ services:
       # Optional: forward localhost ports to host.docker.internal (e.g. DynamoDB, Redis, Postgres)
       # Comma-separated ports and/or dash ranges: "8000", "8000,5432", "9200-9300"
       # - HOST_DOCKER_DNAT_PORTS=${HOST_DOCKER_DNAT_PORTS}
-    volumes:
-      - ./testing/hello/mitmproxy/logs:/var/log/mitmproxy
-      - ./testing/hello/copilot:/var/log/copilot
-      - ./testing/hello/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
+    volumes: []
+      # Mount mitmproxy logs, copilot logs, and user firewall rules (see docker-compose.<scenario>.yml overlays):
+      # - ./testing/hello/mitmproxy/logs:/var/log/mitmproxy
+      # - ./testing/hello/copilot:/var/log/copilot
+      # - ./testing/hello/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
       # Mount a folder of CA certificates (.crt/.pem) to trust private registries:
       # - ./certs:/etc/sandbox/certs:ro
-      - ./workspace/hello:/home/ubuntu/workspace
+      # Mount your workspace:
+      # - ./workspace/hello:/home/ubuntu/workspace
       # Optional: mount a setup script to run at startup (as ubuntu, after proxy is ready)
       # - ./setup.sh:/etc/sandbox/setup.sh:ro
       # Optional: mount host git config for correct git identity inside the container
@@ -36,6 +38,6 @@ services:
       # Optional: expose the host Docker socket so integration tests can manage containers.
       # WARNING: This grants full Docker daemon access (equivalent to root on the host).
       # Only enable for trusted developer workloads — never in production or untrusted CI.
-      - /var/run/docker.sock:/var/run/docker.sock
+      # - /var/run/docker.sock:/var/run/docker.sock
       # Required for GitHub CLI (gh) authentication — mount host gh config to enable GitHub access inside the container
       # - /home/dev/.config/gh:/home/dev/.config/gh:ro

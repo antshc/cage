@@ -7,7 +7,7 @@
 
 services:
   sandbox:
-    volumes: !reset
+    volumes: !override
       - ./testing/docker-dotnet/mitmproxy/logs:/var/log/mitmproxy
       - ./testing/docker-dotnet/copilot:/var/log/copilot
       - ./testing/docker-dotnet/mitmproxy/rules:/etc/mitmproxy/user-rules:ro

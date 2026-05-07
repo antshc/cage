@@ -10,7 +10,7 @@ services:
   sandbox:
     environment:
       - HOST_DOCKER_DNAT_PORTS=8000
-    volumes: !reset
+    volumes: !override
       - ./testing/dynamodb/mitmproxy/logs:/var/log/mitmproxy
       - ./testing/dynamodb/copilot:/var/log/copilot
       - ./testing/dynamodb/mitmproxy/rules:/etc/mitmproxy/user-rules:ro

@@ -1,0 +1,12 @@
+# docker-compose.hello.yml — overlay for workspace/hello.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.hello.yml run --rm sandbox dotnet run
+
+services:
+  sandbox:
+    volumes: !override
+      - ./testing/hello/mitmproxy/logs:/var/log/mitmproxy
+      - ./testing/hello/copilot:/var/log/copilot
+      - ./testing/hello/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
+      - ./workspace/hello:/home/ubuntu/workspace
