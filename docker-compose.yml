@@ -23,8 +23,9 @@ services:
       # Comma-separated ports and/or dash ranges: "8000", "8000,5432", "9200-9300"
       # - HOST_DOCKER_DNAT_PORTS=${HOST_DOCKER_DNAT_PORTS}
     volumes:
-      - ./logs/mitmproxy:/var/log/mitmproxy
-      - ./logs/copilot:/var/log/copilot
+      - ./testing/hello/mitmproxy/logs:/var/log/mitmproxy
+      - ./testing/hello/copilot:/var/log/copilot
+      - ./testing/hello/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
       # Mount a folder of CA certificates (.crt/.pem) to trust private registries:
       # - ./certs:/etc/sandbox/certs:ro
       - ./workspace/hello:/home/ubuntu/workspace
