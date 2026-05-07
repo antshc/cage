@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Docker.DotNet;
 
-namespace DockerConnectivity.Tests;
+namespace DockerDotNet.Tests;
 
 /// <summary>Skips the test when the Docker socket is not available on the host.</summary>
 public sealed class DockerSocketFactAttribute : FactAttribute

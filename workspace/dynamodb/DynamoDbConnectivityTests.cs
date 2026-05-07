@@ -5,7 +5,7 @@ using Amazon.Runtime;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
-namespace DockerConnectivity.Tests;
+namespace DynamoDb.Tests;
 
 /// <summary>
 /// Starts a named DynamoDB Local container using port binding, following the LocalDbFixture pattern:

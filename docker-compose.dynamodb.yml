@@ -1,0 +1,17 @@
+# docker-compose.dynamodb.yml — overlay for workspace/dynamodb tests.
+# Swaps the workspace mount to dynamodb/ and enables DNAT on port 8000
+# so 127.0.0.1:8000 inside the container is redirected to host.docker.internal:8000.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dynamodb.yml run --rm sandbox \
+#     dotnet test /home/ubuntu/workspace --filter "Category=Integration"
+
+services:
+  sandbox:
+    environment:
+      - HOST_DOCKER_DNAT_PORTS=8000
+    volumes: !reset
+      - ./logs/mitmproxy:/var/log/mitmproxy
+      - ./logs/copilot:/var/log/copilot
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./workspace/dynamodb:/home/ubuntu/workspace

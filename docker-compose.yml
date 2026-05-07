@@ -27,7 +27,7 @@ services:
       - ./logs/copilot:/var/log/copilot
       # Mount a folder of CA certificates (.crt/.pem) to trust private registries:
       # - ./certs:/etc/sandbox/certs:ro
-      - ./workspace:/home/ubuntu/workspace
+      - ./workspace/hello:/home/ubuntu/workspace
       # Optional: mount a setup script to run at startup (as ubuntu, after proxy is ready)
       # - ./setup.sh:/etc/sandbox/setup.sh:ro
       # Optional: mount host git config for correct git identity inside the container
