@@ -1,0 +1,15 @@
+# docker-compose.docker-dotnet.yml — overlay for workspace/docker-dotnet tests.
+# Swaps the workspace mount to docker-dotnet/. Docker socket is inherited from the base compose.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.docker-dotnet.yml run --rm sandbox \
+#     dotnet test /home/ubuntu/workspace --filter "Category=Integration"
+
+services:
+  sandbox:
+    volumes: !override
+      - ./testing/docker-dotnet/mitmproxy/logs:/var/log/mitmproxy
+      - ./testing/docker-dotnet/copilot:/var/log/copilot
+      - ./testing/docker-dotnet/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./workspace/docker-dotnet:/home/ubuntu/workspace

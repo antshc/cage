@@ -31,11 +31,10 @@ services:
       # Comma-separated ports and/or dash ranges: "8000", "8000,5432", "9200-9300"
     ports:
       - "2002-2020:2002-2020"  
-    command: bash
     volumes:
       - ./logs/mitmproxy:/var/log/mitmproxy
       - ./logs/copilot:/var/log/copilot
-      - ./my-rules:/etc/mitmproxy/user-rules:ro
+      - ./rules:/etc/mitmproxy/user-rules:ro
       # Mount a folder of CA certificates (.crt/.pem) to trust private registries:
       # - ./certs:/etc/sandbox/certs:ro
       # Mount your project workspace:
