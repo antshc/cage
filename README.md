@@ -9,8 +9,22 @@ A sandboxed Docker container for the Copilot agent. All outbound traffic is forc
 
 ## 1. Set your token
 
+The container supports three authentication methods — use whichever fits your setup:
+
+| Method | How | Used by |
+|--------|-----|---------|
+| Mount `~/.config/gh` | `-v ~/.config/gh:/home/ubuntu/.config/gh:ro` in `docker-compose.yml` | `gh` CLI **and** Copilot CLI — if mounted, `COPILOT_GITHUB_TOKEN` is not required |
+| `GH_TOKEN` env var | Set in shell or `docker-compose.yml` | `gh` CLI — alternative when you can't mount the config dir |
+| `COPILOT_GITHUB_TOKEN` env var | Set in shell or `docker-compose.yml` | Copilot CLI — required only when `~/.config/gh` is not mounted |
+
+Copilot CLI reads credentials from `~/.config/gh` when present (same source as `gh auth login`). The container will fail to start if neither `~/.config/gh` nor `COPILOT_GITHUB_TOKEN` is provided.
+
 ```bash
+# Option A: token only
 export COPILOT_GITHUB_TOKEN=<your-github-token>
+
+# Option B: gh config mount (no token needed — configure docker-compose.yml)
+# - ~/.config/gh:/home/ubuntu/.config/gh:ro
 ```
 
 ## 2. Mount your workspace
@@ -23,98 +37,21 @@ volumes:
   - /absolute/path/to/your/project:/home/ubuntu/workspace
 ```
 
-## 3. Run
-
-```bash
-# docker run (interactive REPL)
-  docker run --rm -it \
-    --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
-    -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
-    # GitHub CLI (gh) auth: mount ~/.config/gh (preferred) OR set GH_TOKEN.
-    # -v "$HOME/.config/gh:/home/ubuntu/.config/gh:ro" \
-    # -e GH_TOKEN="$GH_TOKEN" \
-    -v "/absolute/path/to/runtime/logs/mitmproxy:/var/log/mitmproxy" \
-    -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
-    -v "$(pwd):/home/ubuntu/workspace" \
-    # Optional: mount host git config for correct git identity inside the container.
-    # -v "$HOME/.gitconfig:/home/ubuntu/.gitconfig:ro" \
-    # Optional: expose host Docker socket for integration tests (grants full Docker/host access).
-    # -v "/var/run/docker.sock:/var/run/docker.sock" \
-    # Optional: forward localhost ports to host services (e.g. DynamoDB, Redis):
-    # --sysctl net.ipv4.conf.all.route_localnet=1 \
-    # --add-host host.docker.internal:host-gateway \
-    # -e HOST_DOCKER_DNAT_PORTS=8000 \
-    khdevnet/sandbox copiloty
-```
-
-> You can also pass a prompt directly: `docker run ... khdevnet/sandbox copiloty "explain this codebase"`
-
-## 4. Register a shell alias (optional)
-
-If you're using the `docker compose` setup (recommended), add this alias to your profile:
+## 3. Register a shell alias
 
 ```bash
 # ~/.bashrc or ~/.zshrc
 export COPILOT_GITHUB_TOKEN=<your-github-token>
 
-alias ralph='COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" WORKSPACE="$(pwd)" docker compose -f ~/.ralph-zvm/docker-compose.yml run --rm --service-ports sandbox'
+alias ralph='COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" WORKSPACE="$(pwd)" docker compose -f ~/.ralph/docker-compose.yml run --rm --service-ports sandbox'
+alias ralphb='COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" WORKSPACE="$(pwd)" docker compose -f ~/.ralph/docker-compose.yml -f ~/.ralph/docker-compose.bash.yml run --rm --service-ports sandbox'
 ```
-
-Alternatively, add a shell function to your profile so `copiloty` mounts whichever directory you're currently in as the workspace:
-
-```bash
-# ~/.bashrc or ~/.zshrc
-export COPILOT_GITHUB_TOKEN=<your-github-token>
-
-copiloty() {
-  docker run --rm -it \
-    --cap-add NET_ADMIN --cap-add SETUID --cap-add SETGID --cap-drop ALL \
-    # -p 2000-2020:2000-2020 \
-    -e COPILOT_GITHUB_TOKEN="$COPILOT_GITHUB_TOKEN" \
-    # GitHub CLI (gh) auth: mount ~/.config/gh (preferred) OR set GH_TOKEN.
-    # -v "$HOME/.config/gh:/home/ubuntu/.config/gh:ro" \
-    # -e GH_TOKEN="$GH_TOKEN" \
-    -v "/absolute/path/to/runtime/logs/mitmproxy:/var/log/mitmproxy" \
-    -v "/absolute/path/to/runtime/logs/copilot:/var/log/copilot" \
-    -v "$(pwd):/home/ubuntu/workspace" \
-    # Optional: mount host git config for correct git identity inside the container.
-    # -v "$HOME/.gitconfig:/home/ubuntu/.gitconfig:ro" \
-    # Optional: expose host Docker socket for integration tests (grants full Docker/host access).
-    # -v "/var/run/docker.sock:/var/run/docker.sock" \
-    # Optional: forward localhost ports to host services (e.g. DynamoDB, Redis):
-    # --sysctl net.ipv4.conf.all.route_localnet=1 \
-    # --add-host host.docker.internal:host-gateway \
-    # -e HOST_DOCKER_DNAT_PORTS=8000-8100,9500-9600,2000,2001,10002 \
-    khdevnet/sandbox copiloty
-}
-```
-
-Reload your shell:
-
-```bash
-source ~/.bashrc   # or source ~/.zshrc
-```
-
-Then use it from any project directory:
-
-```bash
-cd /your/project
-
-# Interactive REPL
-copiloty
-
-# With a prompt
-copiloty "explain this codebase"
-copiloty "fix the failing tests"
-```
-
-
 
 All Copilot CLI flags are configurable via environment variables — set them in your shell or add them to `docker-compose.yml` under `environment:`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `COPILOT_GITHUB_TOKEN` | *(required)* | GitHub token for Copilot CLI |
+| `COPILOT_GITHUB_TOKEN` | *(required if `~/.config/gh` not mounted)* | GitHub token for Copilot CLI |
 | `GH_TOKEN` | *(unset)* | Token for `gh` CLI — alternative to mounting `~/.config/gh` |
 | `COPILOT_MODEL` | `claude-sonnet-4.6` | Model: `claude-haiku-4.5`, `claude-sonnet-4.6`, `claude-opus-4` |
 | `COPILOT_EFFORT` | *(unset)* | Effort level: `low`, `medium`, `high`. Omitted when unset — not all models support it. |
@@ -123,12 +60,6 @@ All Copilot CLI flags are configurable via environment variables — set them in
 | `COPILOT_LOG_DIR` | `/var/log/copilot` | Directory for Copilot logs |
 | `SANDBOX_TAG` | `latest` | Docker Hub image tag to pull |
 | `HOST_DOCKER_DNAT_PORTS` | *(unset)* | Comma-separated ports/ranges forwarded from `127.0.0.1` to `host.docker.internal`. E.g. `8000` (DynamoDB), `8000,5432,6379`, `9200-9300` (range). Requires `net.ipv4.conf.all.route_localnet=1` (already set in docker-compose). |
-
-```bash
-# Use a more powerful model with high effort
-COPILOT_MODEL=claude-sonnet-4.6 COPILOT_EFFORT=high \
-  docker compose run --rm -it sandbox copiloty
-```
 
 ## Logs
 
@@ -143,26 +74,30 @@ Proxy and Copilot CLI logs are written to `./logs/` on the host:
 
 | Host path | Container path | Purpose |
 |-----------|---------------|---------|
-| `./logs/mitmproxy` | `/var/log/mitmproxy` | Mitmproxy logs (timestamped) |
-| `./logs/copilot` | `/var/log/copilot` | Copilot CLI logs |
-| `./workspace` | `/home/ubuntu/workspace` | Project workspace |
-| `./my-rules` *(optional)* | `/etc/mitmproxy/user-rules` (read-only) | Extra firewall rules (extend defaults) |
-| `./certs` *(optional)* | `/etc/sandbox/certs` (read-only) | CA certificates (see below) |
-| `./setup.sh` *(optional)* | `/etc/sandbox/setup.sh` (read-only) | Startup script (see below) |
-| `~/.gitconfig` *(optional)* | `/home/ubuntu/.gitconfig` (read-only) | Host git identity (see below) |
-| `~/.config/gh` *(optional)* | `/home/ubuntu/.config/gh` (read-only) | GitHub CLI auth — required for `gh` commands inside the container |
+| `./logs/mitmproxy` | `/var/log/mitmproxy` | Proxy traffic logs written by mitmproxy (one file per session, timestamped) |
+| `./logs/copilot` | `/var/log/copilot` | Copilot CLI session logs for debugging and audit |
+| `./workspace` | `/home/ubuntu/workspace` | Project files — the working directory inside the container |
+| `~/.gitconfig` | `/home/ubuntu/.gitconfig` (read-only) | Host global git identity used as fallback when the repo has no local user config |
+| `~/.config/gh` | `/home/ubuntu/.config/gh` (read-only) | GitHub CLI auth tokens — required for `gh` commands inside the container |
+| `./rules` *(optional)* | `/etc/mitmproxy/user-rules` (read-only) | Extra `.py` firewall rules that extend the built-in allowlist |
+| `./certs` *(optional)* | `/etc/sandbox/certs` (read-only) | `.crt`/`.pem` files trusted at startup for private registries or internal CAs |
+| `./setup.sh` *(optional)* | `/etc/sandbox/setup.sh` (read-only) | Shell script run as `ubuntu` after the proxy starts, before the main command |
 
-## Git identity (optional)
+## Git identity
 
 Git resolves identity natively in priority order:
 1. **Workspace `.git/config`** — repo-local `user.name`/`user.email` (set with `git config user.name` / `git config user.email`, without `--global`) — always wins
 2. **Mounted `~/.gitconfig`** — host global git config, used as a fallback when the repo has no local user config
 
-To mount your host git config, uncomment the line in `docker-compose.yml`:
+## GitHub CLI auth
+
+Mount your host `~/.config/gh` so `gh` commands work inside the container:
 
 ```yaml
-- ~/.gitconfig:/home/ubuntu/.gitconfig:ro
+- ~/.config/gh:/home/ubuntu/.config/gh:ro
 ```
+
+Alternatively, set `GH_TOKEN` in your shell or `docker-compose.yml` instead of mounting the config directory.
 
 ## Optional startup script
 
@@ -175,15 +110,6 @@ Create a `setup.sh` and mount it by uncommenting the line in `docker-compose.yml
 The script runs as the `ubuntu` user after the proxy is ready, before your command. If it exits non-zero the container aborts.
 
 Available env vars in the script: `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, `HTTP_PROXY`, `HTTPS_PROXY`, `NODE_EXTRA_CA_CERTS`.
-
-## CA certificates (optional)
-
-To trust a private registry or internal CA, place `.crt` or `.pem` files in a `certs/` folder and uncomment the volume in `docker-compose.yml`:
-
-```yaml
-volumes:
-  - ./certs:/etc/sandbox/certs:ro
-```
 
 At startup each certificate is installed into the system CA store (dotnet, git, curl, gh CLI) and appended to the Node CA bundle (node, npm, Copilot CLI).
 
@@ -201,4 +127,4 @@ Default rules are baked into the image. Allowed hosts by default:
 | nuget | `api.nuget.org`, `www.nuget.org` |
 | pki | `ocsp.digicert.com`, `crl3.digicert.com`, `crl4.digicert.com`, `*.digicert.com`, `s.symcb.com`, `ts-crl.ws.symantec.com`, `www.microsoft.com` |
 
-To allow additional hosts, add `.py` rule files to `my-rules/` — they extend the defaults without replacing them. See `my-rules/example.py` for the full convention.
+To allow additional hosts, add `.py` rule files to `rules/` — they extend the defaults without replacing them. See `rules/example.py` for the full convention.
