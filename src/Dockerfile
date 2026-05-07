@@ -67,13 +67,12 @@ RUN HOME=/tmp/mitmproxy-setup mitmdump --version \
 
 # Copy entrypoint, copiloty wrapper, firewall rules, and set up workspace/mitmproxy directories with correct ownership
 COPY entrypoint.sh /etc/mitmproxy/entrypoint.sh
-COPY cop.sh /usr/local/bin/cop.sh
+COPY copilot-alias.sh /usr/local/bin/copilot-alias.sh
 COPY firewall/ /etc/mitmproxy/config/
 COPY skills/ /home/ubuntu/.copilot/skills/
 RUN chmod +x /etc/mitmproxy/entrypoint.sh \
-    && chmod +x /usr/local/bin/cop.sh \
-    && ln -s /usr/local/bin/cop.sh /usr/local/bin/cop \
-    && ln -s /usr/local/bin/cop.sh /usr/local/bin/copiloty \
+    && chmod +x /usr/local/bin/copilot-alias.sh \
+    && ln -s /usr/local/bin/copilot-alias.sh /usr/local/bin/copiloty \
     && mkdir -p /home/ubuntu/workspace /var/log/mitmproxy /var/log/copilot /etc/mitmproxy/config /etc/mitmproxy/user-rules \
     && chmod -R a+rx /etc/mitmproxy \
     && chown -R root:root /home/ubuntu \

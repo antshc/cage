@@ -8,7 +8,7 @@ Sandboxed container for Copilot agent. All outbound HTTP/HTTPS routed through mi
 
 - `src/Dockerfile` — Ubuntu 24.04, .NET 8, Node 22, mitmproxy, gh CLI
 - `src/entrypoint.sh` — root entrypoint: starts mitmproxy (as root), sets iptables rules, drops to `ubuntu` via gosu
-- `src/cop.sh` — Copilot CLI wrapper script
+- `src/copilot-alias.sh` — Copilot CLI wrapper script
 - `firewall/firewall.py` — mitmproxy addon, loads rules from `firewall/rules/`
 - `firewall/rules/` — per-service allowlists (hosts + optional `check_request`)
 - `docker-compose.yml` — build & run config (builds image locally from `src/`)
