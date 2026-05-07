@@ -1,37 +1,56 @@
-FROM khdevnet/ubuntubase2404:latest
+ARG UBUNTU_VERSION=24.04
+
+FROM ubuntu:${UBUNTU_VERSION}
+
+ARG UBUNTU_CODENAME=noble
+ARG NODE_MAJOR=24
+ARG DOTNET_VERSION=8.0.411
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV DOTNET_NOLOGO=1
 
+# Install base packages, add all third-party repos, then install repo packages — single update/clean cycle
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl wget git jq ca-certificates gnupg unzip bash openssh-client \
+        iproute2 net-tools lsof netcat-openbsd \
+        python3 python3-pip python3-venv \
+        libicu74 libssl3t64 \
+        iptables gosu iputils-ping \
+    # Node 22 repo
+    && mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+        | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" \
+        > /etc/apt/sources.list.d/nodesource.list \
+    # GitHub CLI repo
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+        | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+        | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    # Docker CLI repo (client only — connects to host daemon via mounted socket)
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+        | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu ${UBUNTU_CODENAME} stable" \
+        | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    # Refresh index once for all new repos, then install
+    && apt-get update \
+    && apt-get install -y --no-install-recommends nodejs gh docker-ce-cli \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install .NET SDK 8.0.411 via the official dotnet-install script
 # (apt repos for Ubuntu 24.04 only carry 8.0.1xx; exact feature-band versions require the script)
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && chmod +x /tmp/dotnet-install.sh \
-    && /tmp/dotnet-install.sh --version 8.0.411 --install-dir /usr/share/dotnet \
+    && /tmp/dotnet-install.sh --version ${DOTNET_VERSION} --install-dir /usr/share/dotnet \
     && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
     && rm /tmp/dotnet-install.sh \
-    && npm install -g @github/copilot \
+    && curl -fsSL https://gh.io/copilot-install | bash \
     && python3 -m venv /opt/mitmproxy \
     && /opt/mitmproxy/bin/pip install --no-cache-dir mitmproxy \
     && ln -s /opt/mitmproxy/bin/mitmdump /usr/local/bin/mitmdump
-
-# Install GitHub CLI
-RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-    | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
-    | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-    && apt-get update && apt-get install -y gh \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Docker CLI (client only — connects to host daemon via mounted socket)
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-    | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu noble stable" \
-    | tee /etc/apt/sources.list.d/docker.list > /dev/null \
-    && apt-get update && apt-get install -y docker-ce-cli \
-        iproute2 net-tools lsof netcat-openbsd \
-    && rm -rf /var/lib/apt/lists/*
 
 
 # Pre-generate mitmproxy CA and trust it system-wide (as root, at build time)
