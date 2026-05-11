@@ -1,6 +1,6 @@
 services:
   sandbox:
-    image: khdevnet/sandbox:${SANDBOX_TAG:-latest}
+    image: antshc/cage:${SANDBOX_TAG:-latest}
     cap_add:
       - NET_ADMIN
       - SETUID
