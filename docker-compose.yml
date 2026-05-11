@@ -7,6 +7,8 @@ services:
       - NET_ADMIN
       - SETUID
       - SETGID
+      - CHOWN
+      - DAC_OVERRIDE
     cap_drop:
       - ALL
     sysctls:

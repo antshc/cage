@@ -1,134 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# entrypoint.sh — Root entrypoint that enforces network policy via iptables,
+# entrypoint.sh — Root entrypoint orchestrator.
+# Sources modular init scripts from /etc/mitmproxy/init.d/ in sorted order,
 # then drops privileges to 'ubuntu' for the application.
 #
 # Requires: NET_ADMIN capability, iptables, gosu
+#
+# Shared variables (available to all init.d/ scripts):
+#   PROXY_PORT  — mitmproxy listen port
+#   UBUNTU_UID  — UID for the unprivileged user (may be remapped by 50-permissions.sh)
+#   NODE_CA_BUNDLE — path to combined CA bundle for Node.js (set by 20-certs.sh)
 
 PROXY_PORT=18080
-UBUNTU_UID=1000
+UBUNTU_UID="${PUID:-1000}"
 
-# --- Validate prerequisites ---
-if [ "$(id -u)" -ne 0 ]; then
-  echo "ERROR: entrypoint.sh must run as root" >&2
-  exit 1
-fi
+# --- Source init.d/ modules in sorted order ---
+INIT_DIR=/etc/mitmproxy/init.d
+for script in "$INIT_DIR"/*.sh; do
+  [ -f "$script" ] || continue
+  # shellcheck source=/dev/null
+  source "$script"
+done
 
-if [ -z "${COPILOT_GITHUB_TOKEN:-}" ] && [ ! -f "/home/ubuntu/.config/gh/hosts.yml" ]; then
-  echo "ERROR: No Copilot auth found. Set COPILOT_GITHUB_TOKEN or mount ~/.config/gh" >&2
-  exit 1
-fi
-
-# --- Register user-supplied CA certificates (runs as root before proxy starts) ---
-USER_CERTS_DIR=/etc/sandbox/certs
-NODE_CA_BUNDLE=/tmp/node-ca-bundle.pem
-
-# Always start the bundle with the mitmproxy CA (required for proxied HTTPS)
-cat /etc/mitmproxy/certs/mitmproxy-ca-cert.pem > "$NODE_CA_BUNDLE"
-
-if [ -d "$USER_CERTS_DIR" ]; then
-  for cert in "$USER_CERTS_DIR"/*.crt "$USER_CERTS_DIR"/*.pem; do
-    [ -f "$cert" ] || continue
-    fname=$(basename "$cert")
-    # Install into system store (covers dotnet, git, curl, gh CLI)
-    cp "$cert" "/usr/local/share/ca-certificates/${fname%.*}.crt"
-    # Append to Node bundle (Node does not use the system store)
-    cat "$cert" >> "$NODE_CA_BUNDLE"
-    echo "Registered CA certificate: $fname"
-  done
-  update-ca-certificates --fresh > /dev/null 2>&1
-fi
-
-# --- Start mitmproxy as root (exempt from iptables UID 1000 rules) ---
-mitmdump \
-  --listen-host 127.0.0.1 \
-  --listen-port "$PROXY_PORT" \
-  --set confdir=/etc/mitmproxy/certs \
-  -s /etc/mitmproxy/config/firewall.py \
-  --set block_global=false \
-  --set block_private=false \
-  --set ssl_verify_upstream_trusted_ca=/etc/ssl/certs/ca-certificates.crt \
-  >>/var/log/mitmproxy/mitmproxy_$(date +%Y%m%d).log 2>&1 &
-
-sleep 1
-
-# --- iptables: force all ubuntu (UID 1000) traffic through mitmproxy ---
-
-# NAT: Redirect outbound HTTP/HTTPS from ubuntu user to local mitmproxy
-iptables -t nat -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -p tcp --dport 80 \
-  -j REDIRECT --to-port "$PROXY_PORT"
-iptables -t nat -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -p tcp --dport 443 \
-  -j REDIRECT --to-port "$PROXY_PORT"
-
-# FILTER: Allow loopback from ubuntu
-iptables -A OUTPUT -o lo -m owner --uid-owner "$UBUNTU_UID" -j ACCEPT
-
-# FILTER: Allow established/related (for redirected connections)
-iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -m state --state ESTABLISHED,RELATED -j ACCEPT
-
-# FILTER: Allow ICMP (ping) from ubuntu (mitmproxy cannot proxy ICMP)
-iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -p icmp -j ACCEPT
-
-# FILTER: Drop all other outbound from ubuntu (blocks raw TCP, UDP, DNS exfil, etc.)
-iptables -A OUTPUT -m owner --uid-owner "$UBUNTU_UID" -j DROP
-
-# --- iptables DNAT: redirect 127.0.0.1:PORT(S) to host.docker.internal:PORT(S) ---
-# Configure via HOST_DOCKER_DNAT_PORTS: comma-separated ports and/or dash ranges.
-# Examples: "8000"  |  "8000,5432,6379"  |  "9200-9300"  |  "8000,9200-9300"
-# Requires: --sysctl net.ipv4.conf.all.route_localnet=1 (set in docker-compose.yml)
-if [ -n "${HOST_DOCKER_DNAT_PORTS:-}" ]; then
-  HOST_DOCKER_IP=$(getent hosts host.docker.internal | awk '{ print $1 }')
-  if [ -n "$HOST_DOCKER_IP" ]; then
-    IFS=',' read -ra _DNAT_ENTRIES <<< "$HOST_DOCKER_DNAT_PORTS"
-    for _entry in "${_DNAT_ENTRIES[@]}"; do
-      _entry="${_entry// /}"   # trim spaces
-      [ -z "$_entry" ] && continue
-      if [[ "$_entry" == *-* ]]; then
-        # Range: "8000-8010" → iptables dport "8000:8010", dest "8000-8010"
-        _port_start="${_entry%-*}"
-        _port_end="${_entry#*-}"
-        _iptables_dport="${_port_start}:${_port_end}"
-        _dest_port="${_port_start}-${_port_end}"
-      else
-        _iptables_dport="$_entry"
-        _dest_port="$_entry"
-      fi
-      iptables -t nat -A OUTPUT \
-        -p tcp -d 127.0.0.1 --dport "$_iptables_dport" \
-        -j DNAT --to-destination "${HOST_DOCKER_IP}:${_dest_port}"
-      iptables -t nat -A POSTROUTING \
-        -p tcp -d "$HOST_DOCKER_IP" --dport "$_iptables_dport" \
-        -j MASQUERADE
-      # Allow UID 1000 to reach the DNAT destination after rewrite
-      # (insert before the final DROP rule so re-addressed packets are not dropped)
-      iptables -I OUTPUT \
-        -m owner --uid-owner "$UBUNTU_UID" \
-        -p tcp -d "$HOST_DOCKER_IP" --dport "$_iptables_dport" \
-        -j ACCEPT
-      echo "DNAT: 127.0.0.1:${_entry} -> ${HOST_DOCKER_IP}:${_entry}"
-    done
-  else
-    echo "WARNING: host.docker.internal not resolved; HOST_DOCKER_DNAT_PORTS skipped" >&2
-  fi
-fi
-
-# --- Fix Docker socket access (idempotent; no-op when socket is absent) ---
-# CAP_CHOWN and group-db writes are unavailable (caps dropped), so we chmod the
-# socket to 660 and rely on the entrypoint running as root (which owns the socket)
-# to make it group-accessible, then set the group to ubuntu's primary GID.
-if [ -S /var/run/docker.sock ]; then
-  chgrp ubuntu /var/run/docker.sock 2>/dev/null || chmod 666 /var/run/docker.sock
-fi
-
-# --- Drop privileges and exec as ubuntu ---
+# --- Export proxy environment for the unprivileged user ---
 export HTTP_PROXY=http://127.0.0.1:$PROXY_PORT
 export HTTPS_PROXY=http://127.0.0.1:$PROXY_PORT
 export ALL_PROXY=http://127.0.0.1:$PROXY_PORT
 export NO_PROXY=localhost,127.0.0.1
-export NODE_EXTRA_CA_CERTS="$NODE_CA_BUNDLE"
+export NODE_EXTRA_CA_CERTS="${NODE_CA_BUNDLE:-/tmp/node-ca-bundle.pem}"
 
-# --- Optional setup script ---
+# --- Optional setup script (runs as ubuntu, after proxy is ready) ---
 SETUP_SCRIPT=/etc/sandbox/setup.sh
 if [ -f "$SETUP_SCRIPT" ]; then
   gosu ubuntu bash "$SETUP_SCRIPT"
