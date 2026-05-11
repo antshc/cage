@@ -30,7 +30,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: khdevnet/sandbox
+        images: antshc/cage
         tags: |
           type=ref,event=branch
           type=semver,pattern={{version}}
