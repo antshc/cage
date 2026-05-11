@@ -79,7 +79,8 @@ COPY skills/ /home/ubuntu/.copilot/skills/
 RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chmod +x /usr/local/bin/copilot-alias.sh \
     && ln -s /usr/local/bin/copilot-alias.sh /usr/local/bin/copiloty \
-    && mkdir -p /etc/mitmproxy/config /etc/mitmproxy/user-rules
+    && mkdir -p /home/ubuntu/workspace /var/log/mitmproxy /var/log/copilot /etc/mitmproxy/config /etc/mitmproxy/user-rules \
+    && chown -R ubuntu:ubuntu /var/log \
     && chmod -R a+rx /etc/mitmproxy \
     && chown -R ubuntu:ubuntu /home/ubuntu \
     && chmod 755 /home/ubuntu \
