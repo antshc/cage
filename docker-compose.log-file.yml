@@ -1,0 +1,18 @@
+# docker-compose.log-file.yml — overlay for workspace/log-file.
+# Runs an app that writes a log entry to /var/log/app/app.log.
+# The /var/log/app directory is mounted from the host so the log file
+# is accessible at ./testing/log-file/app-logs/app.log after the run.
+#
+# Usage:
+#   docker compose build
+#   docker compose -f docker-compose.yml -f docker-compose.log-file.yml run --rm sandbox dotnet run
+#   cat ./testing/log-file/app-logs/app.log
+
+services:
+  sandbox:
+    volumes: !override
+      - ./testing/log-file/mitmproxy/logs:/var/log/mitmproxy
+      - ./testing/log-file/copilot:/var/log/copilot
+      - ./testing/log-file/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
+      - ./workspace/log-file:/home/ubuntu/workspace
+      - ./testing/log-file/app-logs:/var/log/app
