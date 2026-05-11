@@ -3,7 +3,6 @@ set -euo pipefail
 
 # copiloty — unified wrapper around the copilot CLI
 # Usage: copiloty              → interactive session
-#        copiloty "prompt"     → run with prompt
 
 MODEL="${COPILOT_MODEL:-claude-sonnet-4.6}"
 EFFORT="${COPILOT_EFFORT:-}"
@@ -21,9 +20,5 @@ args=(
 )
 
 [[ -n "$EFFORT" ]] && args+=(--effort "$EFFORT")
-
-if [[ $# -gt 0 ]]; then
-  args+=(-p "$*")
-fi
 
 exec copilot "${args[@]}"
