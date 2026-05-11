@@ -21,4 +21,4 @@ args=(
 
 [[ -n "$EFFORT" ]] && args+=(--effort "$EFFORT")
 
-exec copilot "${args[@]}"
+exec copilot "${args[@]}" "$@"
