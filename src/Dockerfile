@@ -81,15 +81,10 @@ RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && ln -s /usr/local/bin/copilot-alias.sh /usr/local/bin/copiloty \
     && mkdir -p /home/ubuntu/workspace /var/log/mitmproxy /var/log/copilot /etc/mitmproxy/config /etc/mitmproxy/user-rules \
     && chmod -R a+rx /etc/mitmproxy \
-    && chown -R root:root /home/ubuntu \
+    && chown -R ubuntu:ubuntu /home/ubuntu \
     && chmod 755 /home/ubuntu \
-    && mkdir -p /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget/NuGet /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet /home/ubuntu/.local/bin /home/ubuntu/.docker \
-    && chown ubuntu:ubuntu /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget /home/ubuntu/.nuget/NuGet /home/ubuntu/.local /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet /home/ubuntu/.local/bin /home/ubuntu/.docker \
-    && chown -R ubuntu:ubuntu /home/ubuntu/.venvs \
-    && chmod 755 /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget /home/ubuntu/.nuget/NuGet /home/ubuntu/.local /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet /home/ubuntu/.local/bin /home/ubuntu/.docker \
     && printf '// User settings belong in settings.json.\n// This file is managed automatically.\n{\n  "trustedFolders": ["/home/ubuntu/workspace"]\n}\n' \
         > /home/ubuntu/.copilot/config.json \
-    && chown ubuntu:ubuntu /home/ubuntu/.copilot/config.json \
     && chmod 600 /home/ubuntu/.copilot/config.json \
     && chown root:root /home/ubuntu/.mitmproxy \
     && chmod 750 /home/ubuntu/.mitmproxy
