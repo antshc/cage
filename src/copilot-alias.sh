@@ -6,7 +6,7 @@ set -euo pipefail
 
 MODEL="${COPILOT_MODEL:-claude-sonnet-4.6}"
 EFFORT="${COPILOT_EFFORT:-}"
-OUTPUT_FORMAT="${COPILOT_OUTPUT_FORMAT:-text}" # FORMAT can be `text` (default) or `json` (outputs JSONL: one JSON object per line).
+OUTPUT_FORMAT="${COPILOT_OUTPUT_FORMAT:-json}" # FORMAT can be `text` or `json` (default, outputs JSONL: one JSON object per line).
 LOG_LEVEL="${COPILOT_LOG_LEVEL:-info}" # choices: none, error, warning, info, debug, all, default
 LOG_DIR="${COPILOT_LOG_DIR:-/var/log/copilot}"
 

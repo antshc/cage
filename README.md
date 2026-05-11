@@ -55,7 +55,7 @@ All Copilot CLI flags are configurable via environment variables — set them in
 | `GH_TOKEN` | *(unset)* | Token for `gh` CLI — alternative to mounting `~/.config/gh` |
 | `COPILOT_MODEL` | `claude-sonnet-4.6` | Model: `claude-haiku-4.5`, `claude-sonnet-4.6`, `claude-opus-4` |
 | `COPILOT_EFFORT` | *(unset)* | Effort level: `low`, `medium`, `high`. Omitted when unset — not all models support it. |
-| `COPILOT_OUTPUT_FORMAT` | `text` | Output format: `text`, `json`, `stream-json` |
+| `COPILOT_OUTPUT_FORMAT` | `json` | Output format: `text`, `json`, `stream-json` |
 | `COPILOT_LOG_LEVEL` | `info` | Log verbosity: `none`, `error`, `warning`, `info`, `debug`, `all` |
 | `COPILOT_LOG_DIR` | `/var/log/copilot` | Directory for Copilot logs |
 | `SANDBOX_TAG` | `latest` | Docker Hub image tag to pull |
