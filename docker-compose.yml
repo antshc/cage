@@ -5,12 +5,6 @@ services:
       dockerfile: Dockerfile
     cap_add:
       - NET_ADMIN
-      - SETUID
-      - SETGID
-      - CHOWN
-      - DAC_OVERRIDE
-    cap_drop:
-      - ALL
     sysctls:
       net.ipv4.conf.all.route_localnet: 1
     extra_hosts:

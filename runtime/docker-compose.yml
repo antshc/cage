@@ -3,12 +3,6 @@ services:
     image: antshc/cage:${SANDBOX_TAG:-latest}
     cap_add:
       - NET_ADMIN
-      - SETUID
-      - SETGID
-      - CHOWN
-      - DAC_OVERRIDE
-    cap_drop:
-      - ALL
     stdin_open: true   # -i
     tty: true          # -t
     sysctls:
