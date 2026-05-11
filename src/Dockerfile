@@ -52,6 +52,12 @@ RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && /opt/mitmproxy/bin/pip install --no-cache-dir mitmproxy \
     && ln -s /opt/mitmproxy/bin/mitmdump /usr/local/bin/mitmdump
 
+# Create private global Python venv for ubuntu user (mirrors antshc/python-env convention)
+RUN mkdir -p /home/ubuntu/.venvs \
+    && python3 -m venv /home/ubuntu/.venvs/global \
+    && /home/ubuntu/.venvs/global/bin/python -m pip install --upgrade --no-cache-dir pip setuptools wheel \
+    && chown -R ubuntu:ubuntu /home/ubuntu/.venvs
+
 
 # Pre-generate mitmproxy CA and trust it system-wide (as root, at build time)
 RUN HOME=/tmp/mitmproxy-setup mitmdump --version \
@@ -79,6 +85,7 @@ RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chmod 755 /home/ubuntu \
     && mkdir -p /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget/NuGet /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet /home/ubuntu/.docker \
     && chown ubuntu:ubuntu /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget /home/ubuntu/.nuget/NuGet /home/ubuntu/.local /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet /home/ubuntu/.docker \
+    && chown -R ubuntu:ubuntu /home/ubuntu/.venvs \
     && chmod 755 /home/ubuntu/workspace /home/ubuntu/.copilot /home/ubuntu/.cache /home/ubuntu/.cache/copilot /home/ubuntu/.dotnet /home/ubuntu/.nuget /home/ubuntu/.nuget/NuGet /home/ubuntu/.local /home/ubuntu/.local/share /home/ubuntu/.local/share/NuGet /home/ubuntu/.docker \
     && printf '// User settings belong in settings.json.\n// This file is managed automatically.\n{\n  "trustedFolders": ["/home/ubuntu/workspace"]\n}\n' \
         > /home/ubuntu/.copilot/config.json \
@@ -92,6 +99,7 @@ ENV HTTPS_PROXY=http://127.0.0.1:18080
 ENV ALL_PROXY=http://127.0.0.1:18080
 ENV NO_PROXY=localhost,127.0.0.1
 ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH=/home/ubuntu/.venvs/global/bin:$PATH
 
 # Entrypoint runs as root to set iptables, then drops to ubuntu via gosu
 WORKDIR /home/ubuntu/workspace
