@@ -113,12 +113,6 @@ if [ -n "${HOST_DOCKER_DNAT_PORTS:-}" ]; then
   fi
 fi
 
-# --- Ensure writable directories are accessible by ubuntu (covers host-mounted volumes) ---
-mkdir -p /var/log/copilot /home/ubuntu/workspace
-for dir in /var/log/copilot /home/ubuntu/workspace; do
-  chown ubuntu:ubuntu "$dir" 2>/dev/null || chmod a+w "$dir" 2>/dev/null || true
-done
-
 # --- Fix Docker socket access (idempotent; no-op when socket is absent) ---
 # CAP_CHOWN and group-db writes are unavailable (caps dropped), so we chmod the
 # socket to 660 and rely on the entrypoint running as root (which owns the socket)
