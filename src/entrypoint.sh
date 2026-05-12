@@ -36,4 +36,10 @@ if [ -f "$SETUP_SCRIPT" ]; then
   gosu ubuntu bash "$SETUP_SCRIPT"
 fi
 
+# --- Optional cron bootstrap (runs as root, before privilege drop) ---
+CRON_SCRIPT=/etc/sandbox/cron.sh
+if [ -f "$CRON_SCRIPT" ]; then
+  bash "$CRON_SCRIPT"
+fi
+
 exec gosu ubuntu "$@"

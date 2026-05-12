@@ -18,6 +18,7 @@ RUN apt-get update \
         python3 python3-pip python3-venv \
         libicu74 libssl3t64 \
         iptables gosu iputils-ping \
+        cron \
     # Node 22 repo
     && mkdir -p /etc/apt/keyrings \
     && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \

@@ -27,6 +27,7 @@ UBUNTU_UID="$PUID"
 _WRITABLE_PATHS=(
   /var/log/copilot
   /home/ubuntu/workspace
+  /home/ubuntu/workspace.worktrees
   /home/ubuntu/.copilot
   /home/ubuntu/.venvs
   /home/ubuntu/.local
