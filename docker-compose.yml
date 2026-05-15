@@ -12,6 +12,14 @@ services:
     environment:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
       - COPILOT_MODEL=${COPILOT_MODEL:-claude-sonnet-4.6}
+      # Optional: override inference effort (e.g. low, medium, high)
+      # - COPILOT_EFFORT=${COPILOT_EFFORT}
+      # Optional: cap the autopilot continuation loop (default: 20)
+      # - COPILOT_MAX_AUTOPILOT_CONTINUES=${COPILOT_MAX_AUTOPILOT_CONTINUES:-20}
+      # Optional: comma-separated directories the agent can access (default: workspace,worktrees,.copilot)
+      # - COPILOT_ADD_DIRS=${COPILOT_ADD_DIRS}
+      # Optional: comma-separated deny-tool entries (unset = default git deny list; empty = no deny tools)
+      # - COPILOT_DENY_TOOLS=${COPILOT_DENY_TOOLS}
       # GitHub CLI (gh) auth: either mount ~/.config/gh (preferred) or set GH_TOKEN.
       # Mount: uncomment the volume below. Token: uncomment GH_TOKEN (defaults to COPILOT_GITHUB_TOKEN if unset).
       # - GH_TOKEN=${GH_TOKEN}

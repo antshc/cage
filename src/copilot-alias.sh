@@ -7,8 +7,24 @@ set -euo pipefail
 MODEL="${COPILOT_MODEL:-claude-sonnet-4.6}"
 EFFORT="${COPILOT_EFFORT:-}"
 OUTPUT_FORMAT="${COPILOT_OUTPUT_FORMAT:-json}" # FORMAT can be `text` or `json` (default, outputs JSONL: one JSON object per line).
-LOG_LEVEL="${COPILOT_LOG_LEVEL:-info}" # choices: none, error, warning, info, debug, all, default
+LOG_LEVEL="${COPILOT_LOG_LEVEL:-debug}" # choices: none, error, warning, info, debug, all, default
 LOG_DIR="${COPILOT_LOG_DIR:-/var/log/copilot}"
+MAX_AUTOPILOT_CONTINUES="${COPILOT_MAX_AUTOPILOT_CONTINUES:-20}"
+
+# Directories to add; comma-separated list of paths.
+ADD_DIRS="${COPILOT_ADD_DIRS:-$HOME/workspace,$HOME/workspace.worktrees,$HOME/.copilot}"
+
+# Deny-tool list; comma-separated shell(…) entries.
+# Leave COPILOT_DENY_TOOLS unset to use the defaults; set to empty string to pass no deny-tools.
+if [[ -z "${COPILOT_DENY_TOOLS+x}" ]]; then
+  deny_tools=(
+    'shell(git reset)'
+    'shell(git rebase)'
+    'shell(git clean)'
+  )
+else
+  IFS=',' read -r -a deny_tools <<< "$COPILOT_DENY_TOOLS"
+fi
 
 args=(
   --model "$MODEL"
@@ -16,8 +32,19 @@ args=(
   --log-level "$LOG_LEVEL"
   --log-dir "$LOG_DIR"
   --autopilot
-  --yolo
+  --allow-all-tools
+  --allow-all-urls
+  --max-autopilot-continues "$MAX_AUTOPILOT_CONTINUES"
 )
+
+for tool in "${deny_tools[@]}"; do
+  args+=(--deny-tool="$tool")
+done
+
+IFS=',' read -r -a add_dirs <<< "$ADD_DIRS"
+for dir in "${add_dirs[@]}"; do
+  args+=(--add-dir="$dir")
+done
 
 [[ -n "$EFFORT" ]] && args+=(--effort "$EFFORT")
 

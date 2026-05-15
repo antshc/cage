@@ -86,7 +86,7 @@ RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chmod -R a+rx /etc/mitmproxy \
     && chown -R ubuntu:ubuntu /home/ubuntu \
     && chmod 755 /home/ubuntu \
-    && printf '// User settings belong in settings.json.\n// This file is managed automatically.\n{\n  "trustedFolders": ["/home/ubuntu/workspace"]\n}\n' \
+    && printf '// User settings belong in settings.json.\n// This file is managed automatically.\n{\n  "trustedFolders": ["/home/ubuntu/workspace", "/home/ubuntu/workspace.worktrees", "/home/ubuntu/.copilot"]\n}\n' \
         > /home/ubuntu/.copilot/config.json \
     && chown ubuntu:ubuntu /home/ubuntu/.copilot/config.json \
     && chmod 600 /home/ubuntu/.copilot/config.json \
