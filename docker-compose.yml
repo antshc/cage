@@ -27,10 +27,11 @@ services:
       # Optional: forward localhost ports to host.docker.internal (e.g. DynamoDB, Redis, Postgres)
       # Comma-separated ports and/or dash ranges: "8000", "8000,5432", "9200-9300"
       # - HOST_DOCKER_DNAT_PORTS=${HOST_DOCKER_DNAT_PORTS}
-    volumes: []
+    volumes:
       # Mount mitmproxy logs, copilot logs, and user firewall rules (see docker-compose.<scenario>.yml overlays):
       # - ./testing/hello/mitmproxy/logs:/var/log/mitmproxy
       # - ./testing/hello/copilot:/var/log/copilot
+      - ./testing/runtime/rules:/etc/mitmproxy/user-rules:ro
       # - ./testing/hello/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
       # Mount a folder of CA certificates (.crt/.pem) to trust private registries:
       # - ./certs:/etc/sandbox/certs:ro

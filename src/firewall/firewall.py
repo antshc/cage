@@ -67,6 +67,8 @@ def request(flow: http.HTTPFlow) -> None:
     handler = HOST_HANDLERS.get(host)
     if handler:
         handler(flow)
+        if flow.response:
+            ctx.log.warn(f"[BLOCKED] {flow.request.method} {flow.request.pretty_url}")
 
 
 def response(flow: http.HTTPFlow) -> None:

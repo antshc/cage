@@ -1,3 +1,0 @@
-services:
-  sandbox:
-    command: bash

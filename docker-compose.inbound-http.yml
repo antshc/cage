@@ -19,5 +19,4 @@ services:
     volumes: !override
       - ./testing/inbound-http/mitmproxy/logs:/var/log/mitmproxy
       - ./testing/inbound-http/copilot:/var/log/copilot
-      - ./testing/inbound-http/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
       - ./workspace/inbound-http:/home/ubuntu/workspace

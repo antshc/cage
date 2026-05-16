@@ -13,6 +13,5 @@ services:
     volumes: !override
       - ./testing/dynamodb/mitmproxy/logs:/var/log/mitmproxy
       - ./testing/dynamodb/copilot:/var/log/copilot
-      - ./testing/dynamodb/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - ./workspace/dynamodb:/home/ubuntu/workspace

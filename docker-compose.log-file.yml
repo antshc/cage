@@ -13,6 +13,5 @@ services:
     volumes: !override
       - ./testing/log-file/mitmproxy/logs:/var/log/mitmproxy
       - ./testing/log-file/copilot:/var/log/copilot
-      - ./testing/log-file/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
       - ./workspace/log-file:/home/ubuntu/workspace
       - ./testing/log-file/app-logs:/var/log/app

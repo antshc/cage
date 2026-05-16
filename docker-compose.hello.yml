@@ -8,5 +8,4 @@ services:
     volumes: !override
       - ./testing/hello/mitmproxy/logs:/var/log/mitmproxy
       - ./testing/hello/copilot:/var/log/copilot
-      - ./testing/hello/mitmproxy/rules:/etc/mitmproxy/user-rules:ro
       - ./workspace/hello:/home/ubuntu/workspace
