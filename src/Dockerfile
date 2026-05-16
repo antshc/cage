@@ -86,10 +86,6 @@ RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chmod -R a+rx /etc/mitmproxy \
     && chown -R ubuntu:ubuntu /home/ubuntu \
     && chmod 755 /home/ubuntu \
-    && printf '// User settings belong in settings.json.\n// This file is managed automatically.\n{\n  "trustedFolders": ["/home/ubuntu/workspace", "/home/ubuntu/workspace.worktrees", "/home/ubuntu/.copilot"]\n}\n' \
-        > /home/ubuntu/.copilot/config.json \
-    && chown ubuntu:ubuntu /home/ubuntu/.copilot/config.json \
-    && chmod 600 /home/ubuntu/.copilot/config.json \
     && chown root:root /home/ubuntu/.mitmproxy \
     && chmod 750 /home/ubuntu/.mitmproxy
 
@@ -97,6 +93,7 @@ ENV HTTP_PROXY=http://127.0.0.1:18080
 ENV HTTPS_PROXY=http://127.0.0.1:18080
 ENV ALL_PROXY=http://127.0.0.1:18080
 ENV NO_PROXY=localhost,127.0.0.1
+ENV COPILOT_DEFAULT_ADD_DIRS=/home/ubuntu/workspace,/home/ubuntu/workspace.worktrees,/home/ubuntu/.copilot
 ENV DOTNET_ROOT=/usr/share/dotnet
 ENV PATH=/home/ubuntu/.local/bin:/home/ubuntu/.venvs/global/bin:$PATH
 ENV PIPX_HOME=/home/ubuntu/.local/pipx

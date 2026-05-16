@@ -56,6 +56,7 @@ All Copilot CLI flags are configurable via environment variables — set them in
 | `COPILOT_MODEL` | `claude-sonnet-4.6` | Model: `claude-haiku-4.5`, `claude-sonnet-4.6`, `claude-opus-4` |
 | `COPILOT_EFFORT` | *(unset)* | Effort level: `low`, `medium`, `high`. Omitted when unset — not all models support it. |
 | `COPILOT_OUTPUT_FORMAT` | `json` | Output format: `text`, `json`, `stream-json` |
+| `COPILOT_ADD_DIRS` | *(unset)* | Comma-separated extra dirs to add to the agent's file-access scope and `trustedFolders`. **Extends** the defaults (`~/workspace`, `~/workspace.worktrees`, `~/.copilot`) — does not replace them. |
 | `COPILOT_LOG_LEVEL` | `info` | Log verbosity: `none`, `error`, `warning`, `info`, `debug`, `all` |
 | `COPILOT_LOG_DIR` | `/var/log/copilot` | Directory for Copilot logs |
 | `SANDBOX_TAG` | `latest` | Docker Hub image tag to pull |

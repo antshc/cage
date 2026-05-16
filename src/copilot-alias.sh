@@ -12,7 +12,14 @@ LOG_DIR="${COPILOT_LOG_DIR:-/var/log/copilot}"
 MAX_AUTOPILOT_CONTINUES="${COPILOT_MAX_AUTOPILOT_CONTINUES:-20}"
 
 # Directories to add; comma-separated list of paths.
-ADD_DIRS="${COPILOT_ADD_DIRS:-$HOME/workspace,$HOME/workspace.worktrees,$HOME/.copilot}"
+# COPILOT_ADD_DIRS extends the defaults — it does not replace them.
+_DEFAULT_DIRS="${COPILOT_DEFAULT_ADD_DIRS}"
+if [[ -n "${COPILOT_ADD_DIRS:-}" ]]; then
+  ADD_DIRS="${_DEFAULT_DIRS},${COPILOT_ADD_DIRS}"
+else
+  ADD_DIRS="${_DEFAULT_DIRS}"
+fi
+unset _DEFAULT_DIRS
 
 # Deny-tool list; comma-separated shell(…) entries.
 # Set COPILOT_DENY_TOOLS to enable deny-tools; leave unset or empty to pass none.
