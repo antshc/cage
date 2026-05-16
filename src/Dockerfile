@@ -91,10 +91,6 @@ RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chown root:root /home/ubuntu/.mitmproxy \
     && chmod 750 /home/ubuntu/.mitmproxy
 
-ENV HTTP_PROXY=http://127.0.0.1:18080
-ENV HTTPS_PROXY=http://127.0.0.1:18080
-ENV ALL_PROXY=http://127.0.0.1:18080
-ENV NO_PROXY=localhost,127.0.0.1
 ENV COPILOT_DEFAULT_ADD_DIRS=/home/ubuntu/workspace,/home/ubuntu/workspace.worktrees,/home/ubuntu/.copilot
 ENV DOTNET_ROOT=/usr/lib/dotnet
 ENV PATH=/home/ubuntu/.local/bin:/home/ubuntu/.venvs/global/bin:$PATH
