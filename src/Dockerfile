@@ -4,7 +4,8 @@ FROM ubuntu:${UBUNTU_VERSION}
 
 ARG UBUNTU_CODENAME=noble
 ARG NODE_MAJOR=24
-ARG DOTNET_VERSION=8.0.411
+ARG DOTNET_SDK_8_VERSION=8.0.419
+ARG DOTNET_SDK_10_VERSION=10.0.105
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -40,12 +41,13 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install .NET SDK 8.0.411 via the official dotnet-install script
-# (apt repos for Ubuntu 24.04 only carry 8.0.1xx; exact feature-band versions require the script)
+# Install specific .NET SDK versions via the official dotnet-install script.
+# Installing to /usr/lib/dotnet ensures SDKs appear under /usr/lib/dotnet/sdk.
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && chmod +x /tmp/dotnet-install.sh \
-    && /tmp/dotnet-install.sh --version ${DOTNET_VERSION} --install-dir /usr/share/dotnet \
-    && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
+    && /tmp/dotnet-install.sh --version ${DOTNET_SDK_8_VERSION} --install-dir /usr/lib/dotnet \
+    && /tmp/dotnet-install.sh --version ${DOTNET_SDK_10_VERSION} --install-dir /usr/lib/dotnet \
+    && ln -s /usr/lib/dotnet/dotnet /usr/local/bin/dotnet \
     && rm /tmp/dotnet-install.sh \
     && curl -fsSL https://gh.io/copilot-install | bash \
     && python3 -m venv /opt/mitmproxy \
@@ -94,7 +96,7 @@ ENV HTTPS_PROXY=http://127.0.0.1:18080
 ENV ALL_PROXY=http://127.0.0.1:18080
 ENV NO_PROXY=localhost,127.0.0.1
 ENV COPILOT_DEFAULT_ADD_DIRS=/home/ubuntu/workspace,/home/ubuntu/workspace.worktrees,/home/ubuntu/.copilot
-ENV DOTNET_ROOT=/usr/share/dotnet
+ENV DOTNET_ROOT=/usr/lib/dotnet
 ENV PATH=/home/ubuntu/.local/bin:/home/ubuntu/.venvs/global/bin:$PATH
 ENV PIPX_HOME=/home/ubuntu/.local/pipx
 ENV PIPX_BIN_DIR=/home/ubuntu/.local/bin

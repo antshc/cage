@@ -1,12 +1,19 @@
 # Test scenarios
 
+## Rebuild once (all scenarios)
+
+Rebuild the sandbox image once before running any scenario:
+
+```bash
+docker compose -f docker-compose.yml build --pull sandbox
+```
+
 ## hello
 
 **Tests:**
 - Prints `Hello, World!` via `dotnet run`
 
 ```bash
-docker compose build
 docker compose -f docker-compose.yml -f docker-compose.hello.yml run --rm sandbox dotnet run
 ```
 
@@ -19,7 +26,6 @@ docker compose -f docker-compose.yml -f docker-compose.hello.yml run --rm sandbo
 - `docker info` CLI exits 0 and returns server version
 
 ```bash
-docker compose build
 docker compose -f docker-compose.yml -f docker-compose.docker-dotnet.yml run --rm sandbox \
   dotnet test /home/ubuntu/workspace
 ```
@@ -33,7 +39,6 @@ docker compose -f docker-compose.yml -f docker-compose.docker-dotnet.yml run --r
 - DNAT redirects `127.0.0.1:8000` inside container → `host.docker.internal:8000` on host
 
 ```bash
-docker compose build
 docker compose -f docker-compose.yml -f docker-compose.dynamodb.yml run --rm sandbox \
   dotnet test /home/ubuntu/workspace
 ```
@@ -46,8 +51,6 @@ docker compose -f docker-compose.yml -f docker-compose.dynamodb.yml run --rm san
 - Server responds with `OK` and exits 0
 
 ```bash
-docker compose build
-
 # 1. Start the sandbox in the background
 docker compose -f docker-compose.yml -f docker-compose.inbound-http.yml up -d
 
@@ -68,7 +71,6 @@ docker compose -f docker-compose.yml -f docker-compose.inbound-http.yml wait san
 - `/var/log/app` is a bind-mounted host directory (`./testing/log-file/app-logs`), so the log file is readable on the host after the run
 
 ```bash
-docker compose build
 docker compose -f docker-compose.yml -f docker-compose.log-file.yml run --rm sandbox dotnet run
 
 # Verify the log file was written to the host-mounted directory
