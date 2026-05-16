@@ -25,6 +25,7 @@ UBUNTU_UID="$PUID"
 # These are directories that the ubuntu user needs write access to at runtime.
 # Silently skip read-only mounts or missing paths.
 _WRITABLE_PATHS=(
+  /tmp
   /var/log
   /home/ubuntu/workspace
   /home/ubuntu/workspace.worktrees
