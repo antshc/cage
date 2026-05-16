@@ -15,15 +15,11 @@ MAX_AUTOPILOT_CONTINUES="${COPILOT_MAX_AUTOPILOT_CONTINUES:-20}"
 ADD_DIRS="${COPILOT_ADD_DIRS:-$HOME/workspace,$HOME/workspace.worktrees,$HOME/.copilot}"
 
 # Deny-tool list; comma-separated shell(…) entries.
-# Leave COPILOT_DENY_TOOLS unset to use the defaults; set to empty string to pass no deny-tools.
-if [[ -z "${COPILOT_DENY_TOOLS+x}" ]]; then
-  deny_tools=(
-    'shell(git reset)'
-    'shell(git rebase)'
-    'shell(git clean)'
-  )
-else
+# Set COPILOT_DENY_TOOLS to enable deny-tools; leave unset or empty to pass none.
+if [[ -n "${COPILOT_DENY_TOOLS:-}" ]]; then
   IFS=',' read -r -a deny_tools <<< "$COPILOT_DENY_TOOLS"
+else
+  deny_tools=()
 fi
 
 args=(
