@@ -49,6 +49,7 @@ RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && /tmp/dotnet-install.sh --version ${DOTNET_SDK_10_VERSION} --install-dir /usr/lib/dotnet \
     && ln -s /usr/lib/dotnet/dotnet /usr/local/bin/dotnet \
     && rm /tmp/dotnet-install.sh \
+    && dotnet tool install --tool-path /usr/local/bin csharp-ls --version 0.16.0.0 \
     && curl -fsSL https://gh.io/copilot-install | bash \
     && python3 -m venv /opt/mitmproxy \
     && /opt/mitmproxy/bin/pip install --no-cache-dir mitmproxy \
