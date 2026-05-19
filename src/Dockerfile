@@ -15,7 +15,7 @@ ENV DOTNET_NOLOGO=1
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         curl wget git jq ca-certificates gnupg unzip bash openssh-client \
-        iproute2 net-tools lsof netcat-openbsd \
+        iproute2 net-tools lsof netcat-openbsd dnsutils \
         python3 python3-pip python3-venv \
         libicu74 libssl3t64 \
         iptables gosu iputils-ping \
@@ -101,6 +101,7 @@ ENV DOTNET_ROOT=/usr/lib/dotnet
 ENV PATH=/home/ubuntu/.local/bin:/home/ubuntu/.venvs/global/bin:$PATH
 ENV PIPX_HOME=/home/ubuntu/.local/pipx
 ENV PIPX_BIN_DIR=/home/ubuntu/.local/bin
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Entrypoint runs as root to set iptables, then drops to ubuntu via gosu
 WORKDIR /home/ubuntu/workspace
