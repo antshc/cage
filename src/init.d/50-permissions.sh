@@ -32,6 +32,7 @@ _WRITABLE_PATHS=(
   /home/ubuntu/.copilot
   /home/ubuntu/.venvs
   /home/ubuntu/.local
+  /home/ubuntu/.config
 )
 
 for _path in "${_WRITABLE_PATHS[@]}"; do
