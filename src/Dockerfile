@@ -101,6 +101,7 @@ ENV DOTNET_ROOT=/usr/lib/dotnet
 ENV PATH=/home/ubuntu/.local/bin:/home/ubuntu/.venvs/global/bin:$PATH
 ENV PIPX_HOME=/home/ubuntu/.local/pipx
 ENV PIPX_BIN_DIR=/home/ubuntu/.local/bin
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Entrypoint runs as root to set iptables, then drops to ubuntu via gosu
 WORKDIR /home/ubuntu/workspace
