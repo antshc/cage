@@ -38,6 +38,7 @@ args=(
   --allow-all-tools
   --allow-all-urls
   --max-autopilot-continues "$MAX_AUTOPILOT_CONTINUES"
+  --disable-mcp-server github-mcp-server
 )
 
 for tool in "${deny_tools[@]}"; do
