@@ -12,6 +12,7 @@ services:
     environment:
       - COPILOT_GITHUB_TOKEN=${COPILOT_GITHUB_TOKEN}
       - COPILOT_MODEL=${COPILOT_MODEL:-claude-sonnet-4.6}
+      # - COPILOT_LOG_LEVEL: info 
       # Optional: override inference effort (e.g. low, medium, high)
       # - COPILOT_EFFORT=${COPILOT_EFFORT}
       # Optional: cap the autopilot continuation loop (default: 20)
