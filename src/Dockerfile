@@ -52,7 +52,7 @@ RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && dotnet tool install --tool-path /usr/local/bin csharp-ls --version 0.16.0.0 \
     && curl -fsSL https://gh.io/copilot-install | bash \
     && python3 -m venv /opt/mitmproxy \
-    && /opt/mitmproxy/bin/pip install --no-cache-dir mitmproxy \
+    && /opt/mitmproxy/bin/pip install --no-cache-dir mitmproxy python-json-logger \
     && ln -s /opt/mitmproxy/bin/mitmdump /usr/local/bin/mitmdump
 
 # Create private global Python venv for ubuntu user (mirrors antshc/python-env convention)

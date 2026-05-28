@@ -1,7 +1,41 @@
 import importlib.util
+import logging
 import os
+from datetime import datetime, timezone
 
 from mitmproxy import ctx, http
+from pythonjsonlogger.json import JsonFormatter
+
+
+# --- ECS JSON logger setup ---
+
+class _EcsJsonFormatter(JsonFormatter):
+    """Rename stdlib fields to ECS names: levelname→level, name→logger."""
+
+    def add_fields(self, log_record: dict, record: logging.LogRecord, message_dict: dict) -> None:
+        super().add_fields(log_record, record, message_dict)
+        log_record["level"] = log_record.pop("levelname", record.levelname)
+        log_record["logger"] = log_record.pop("name", record.name)
+
+
+def _setup_json_logger() -> logging.Logger:
+    log_dir = "/var/log/mitmproxy"
+    os.makedirs(log_dir, exist_ok=True)
+    log_path = os.path.join(log_dir, f"events_{datetime.now(timezone.utc).strftime('%Y%m%d')}.json")
+    logger = logging.getLogger("mitmproxy.firewall")
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False
+    handler = logging.FileHandler(log_path, encoding="utf-8")
+    handler.setFormatter(_EcsJsonFormatter(
+        fmt="%(asctime)s %(levelname)s %(message)s",
+        rename_fields={"asctime": "@timestamp"},
+        datefmt="%Y-%m-%dT%H:%M:%S.%fZ",
+    ))
+    logger.addHandler(handler)
+    return logger
+
+
+_json_logger = _setup_json_logger()
 
 
 ALLOWED_HOSTS: set[str] = set()
@@ -41,6 +75,12 @@ _load_rules_from_dir(_BUILTIN_RULES_DIR)
 _load_rules_from_dir("/etc/mitmproxy/user-rules")
 
 
+# --- mitmproxy lifecycle hook ---
+
+def running() -> None:
+    _json_logger.info("proxy started", extra={"event": {"action": "startup"}})
+
+
 # --- Main request handler ---
 
 def request(flow: http.HTTPFlow) -> None:
@@ -48,6 +88,14 @@ def request(flow: http.HTTPFlow) -> None:
 
     if host not in ALLOWED_HOSTS and not any(host.endswith(w) for w in ALLOWED_WILDCARDS):
         ctx.log.warn(f"[BLOCKED] {flow.request.method} {flow.request.pretty_url}")
+        _json_logger.warning(
+            f"[BLOCKED] {flow.request.method} {flow.request.pretty_url}",
+            extra={
+                "event": {"action": "blocked"},
+                "http": {"request": {"method": flow.request.method}},
+                "url": {"full": flow.request.pretty_url, "domain": host},
+            },
+        )
         body = (
             f"[Sandbox Firewall] Access to '{host}' is blocked.\n"
             f"This is not a rejection from the remote site — the sandbox proxy blocked the request.\n"
@@ -63,12 +111,28 @@ def request(flow: http.HTTPFlow) -> None:
         return
 
     ctx.log.info(f"[ALLOWED] {flow.request.method} {flow.request.pretty_url}")
+    _json_logger.info(
+        f"[ALLOWED] {flow.request.method} {flow.request.pretty_url}",
+        extra={
+            "event": {"action": "allowed"},
+            "http": {"request": {"method": flow.request.method}},
+            "url": {"full": flow.request.pretty_url, "domain": host},
+        },
+    )
 
     handler = HOST_HANDLERS.get(host)
     if handler:
         handler(flow)
         if flow.response:
             ctx.log.warn(f"[BLOCKED] {flow.request.method} {flow.request.pretty_url}")
+            _json_logger.warning(
+                f"[BLOCKED] {flow.request.method} {flow.request.pretty_url}",
+                extra={
+                    "event": {"action": "blocked-by-handler"},
+                    "http": {"request": {"method": flow.request.method}},
+                    "url": {"full": flow.request.pretty_url, "domain": host},
+                },
+            )
 
 
 def response(flow: http.HTTPFlow) -> None:
@@ -77,4 +141,19 @@ def response(flow: http.HTTPFlow) -> None:
         ctx.log.info(
             f"[RESPONSE] {flow.request.method} {flow.request.pretty_url}"
             f" << {flow.response.status_code} {flow.response.reason}"
+        )
+        _json_logger.info(
+            f"[RESPONSE] {flow.request.method} {flow.request.pretty_url}"
+            f" << {flow.response.status_code} {flow.response.reason}",
+            extra={
+                "event": {"action": "response"},
+                "http": {
+                    "request": {"method": flow.request.method},
+                    "response": {
+                        "status_code": flow.response.status_code,
+                        "reason": flow.response.reason,
+                    },
+                },
+                "url": {"full": flow.request.pretty_url, "domain": host},
+            },
         )
