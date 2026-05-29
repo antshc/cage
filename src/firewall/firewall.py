@@ -12,6 +12,12 @@ from pythonjsonlogger.json import JsonFormatter
 class _EcsJsonFormatter(JsonFormatter):
     """Rename stdlib fields to ECS names: levelname→level, name→logger."""
 
+    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
+        ct = datetime.fromtimestamp(record.created, tz=timezone.utc)
+        if datefmt:
+            return ct.strftime(datefmt)
+        return ct.isoformat()
+
     def add_fields(self, log_record: dict, record: logging.LogRecord, message_dict: dict) -> None:
         super().add_fields(log_record, record, message_dict)
         log_record["level"] = log_record.pop("levelname", record.levelname)
