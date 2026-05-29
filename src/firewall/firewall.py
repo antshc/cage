@@ -163,3 +163,25 @@ def response(flow: http.HTTPFlow) -> None:
                 "url": {"full": flow.request.pretty_url, "domain": host},
             },
         )
+
+
+def error(flow: http.HTTPFlow) -> None:
+    msg = flow.error.msg if flow.error else "unknown error"
+    if flow.request:
+        method = flow.request.method
+        url = flow.request.pretty_url
+        host = flow.request.pretty_host.lower()
+    else:
+        method = "CONNECT"
+        url = ""
+        host = ""
+    ctx.log.warn(f"[ERROR] {msg}")
+    _json_logger.error(
+        f"[ERROR] {msg}",
+        extra={
+            "event": {"action": "error"},
+            "error": {"message": msg},
+            "http": {"request": {"method": method}},
+            "url": {"full": url, "domain": host},
+        },
+    )
