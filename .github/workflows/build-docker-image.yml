@@ -4,6 +4,12 @@ on:
   push:
     branches: [ "main", "dev" ]
     tags: [ "v*.*.*" ]
+  workflow_dispatch:
+    inputs:
+      no_cache:
+        description: Build without using Docker cache
+        type: boolean
+        default: false
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -37,8 +43,9 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and push
+    - name: Build and push (cached)
       uses: docker/build-push-action@v6
+      if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.no_cache == true) }}
       with:
         context: ./src
         file: src/Dockerfile
@@ -47,3 +54,14 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Build and push (no cache)
+      uses: docker/build-push-action@v6
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.no_cache == true }}
+      with:
+        context: ./src
+        file: src/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        no-cache: true
