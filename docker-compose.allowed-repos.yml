@@ -1,0 +1,17 @@
+# docker-compose.allowed-repos.yml — overlay for workspace/github firewall tests.
+# Tests GitHub repository access filtering: allowed repos pass through,
+# blocked repos return 403 from the sandbox firewall.
+#
+# Allowed repos are configured in testing/github/rules/github.py (ALLOWED_REPOS).
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.allowed-repos.yml run --rm sandbox
+
+services:
+  sandbox:
+    command: ["bash", "/home/ubuntu/workspace/test.sh"]
+    volumes: !override
+      - ./testing/github/mitmproxy/logs:/var/log/mitmproxy
+      - ./testing/github/copilot:/var/log/copilot
+      - ./testing/github/rules:/etc/mitmproxy/user-rules:ro
+      - ./workspace/github:/home/ubuntu/workspace

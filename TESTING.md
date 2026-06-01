@@ -8,10 +8,25 @@ Rebuild the sandbox image once before running any scenario:
 docker compose -f docker-compose.yml build --pull sandbox
 ```
 
+## github
+
+**Tests:**
+- `github.com/<allowed-repo>` passes the firewall
+- `github.com/<blocked-repo>` returns 403 from the firewall
+- `api.github.com/user` passes the firewall (unconditional prefix)
+- `api.github.com/repos/<allowed-repo>` passes the firewall
+- `api.github.com/` passes the firewall (all paths allowed via `/` prefix)
+- `raw.githubusercontent.com` passes the firewall (no path restriction)
+
+Allowed repos are configured in `testing/github/rules/github.py` (`ALLOWED_REPOS`).
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.allowed-repos.yml run --rm sandbox
+```
+
 ## hello
 
 **Tests:**
-- Prints `Hello, World!` via `dotnet run`
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.hello.yml run --rm sandbox dotnet run

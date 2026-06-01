@@ -47,6 +47,7 @@ _json_logger = _setup_json_logger()
 ALLOWED_HOSTS: set[str] = set()
 ALLOWED_WILDCARDS: list[str] = []  # suffixes like ".digicert.com" from "*.digicert.com"
 HOST_HANDLERS: dict[str, callable] = {}
+_LOADED_MODULES: dict[str, object] = {}  # stem -> module, for user-rule patching
 
 
 def _load_rules_from_dir(rules_dir: str) -> None:
@@ -66,9 +67,13 @@ def _load_rules_from_dir(rules_dir: str) -> None:
         for pattern in env.get("wildcards", set()):
             if pattern.startswith("*."):
                 ALLOWED_WILDCARDS.append(pattern[1:])  # store as ".digicert.com"
+        stem = fname[:-3]
         if hasattr(module, "check_request"):
             for host in hosts:
                 HOST_HANDLERS[host] = module.check_request
+            _LOADED_MODULES[stem] = module
+        elif hasattr(module, "ALLOWED_REPOS") and stem in _LOADED_MODULES and hasattr(_LOADED_MODULES[stem], "ALLOWED_REPOS"):
+            _LOADED_MODULES[stem].ALLOWED_REPOS[:] = module.ALLOWED_REPOS
 
 
 # --- Built-in rules: every .py file present in rules/ is active ---
