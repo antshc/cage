@@ -35,9 +35,15 @@ RUN apt-get update \
         | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu ${UBUNTU_CODENAME} stable" \
         | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    # Azure CLI repo
+    && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+        | gpg --dearmor -o /usr/share/keyrings/microsoft.gpg \
+    && chmod go+r /usr/share/keyrings/microsoft.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ ${UBUNTU_CODENAME} main" \
+        | tee /etc/apt/sources.list.d/azure-cli.list > /dev/null \
     # Refresh index once for all new repos, then install
     && apt-get update \
-    && apt-get install -y --no-install-recommends nodejs gh docker-ce-cli \
+    && apt-get install -y --no-install-recommends nodejs gh docker-ce-cli azure-cli awscli \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
