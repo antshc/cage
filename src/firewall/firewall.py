@@ -47,6 +47,7 @@ _json_logger = _setup_json_logger()
 ALLOWED_HOSTS: set[str] = set()
 ALLOWED_WILDCARDS: list[str] = []  # suffixes like ".digicert.com" from "*.digicert.com"
 HOST_HANDLERS: dict[str, callable] = {}
+WILDCARD_HANDLERS: list[tuple[str, callable]] = []  # (suffix, handler) for wildcard-matched hosts
 _LOADED_MODULES: dict[str, object] = {}  # stem -> module, for user-rule patching
 
 
@@ -71,9 +72,20 @@ def _load_rules_from_dir(rules_dir: str) -> None:
         if hasattr(module, "check_request"):
             for host in hosts:
                 HOST_HANDLERS[host] = module.check_request
+            for wc_pattern in env.get("wildcards", set()):
+                if wc_pattern.startswith("*."):
+                    WILDCARD_HANDLERS.append((wc_pattern[1:], module.check_request))
             _LOADED_MODULES[stem] = module
-        elif hasattr(module, "ALLOWED_REPOS") and stem in _LOADED_MODULES and hasattr(_LOADED_MODULES[stem], "ALLOWED_REPOS"):
-            _LOADED_MODULES[stem].ALLOWED_REPOS[:] = module.ALLOWED_REPOS
+        elif stem in _LOADED_MODULES:
+            built_in = _LOADED_MODULES[stem]
+            for attr_name in vars(module):
+                if attr_name.startswith("_"):
+                    continue
+                val = getattr(module, attr_name)
+                if isinstance(val, list):
+                    built_in_val = getattr(built_in, attr_name, None)
+                    if isinstance(built_in_val, list):
+                        built_in_val[:] = val
 
 
 # --- Built-in rules: every .py file present in rules/ is active ---
@@ -132,6 +144,11 @@ def request(flow: http.HTTPFlow) -> None:
     )
 
     handler = HOST_HANDLERS.get(host)
+    if handler is None:
+        for suffix, wc_handler in WILDCARD_HANDLERS:
+            if host.endswith(suffix):
+                handler = wc_handler
+                break
     if handler:
         handler(flow)
         if flow.response:
