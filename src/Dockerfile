@@ -3,6 +3,7 @@ ARG UBUNTU_VERSION=24.04
 FROM ubuntu:${UBUNTU_VERSION}
 
 ARG UBUNTU_CODENAME=noble
+ARG AZURE_CLI_CODENAME=jammy
 ARG NODE_MAJOR=24
 ARG DOTNET_SDK_8_VERSION=8.0.419
 ARG DOTNET_SDK_10_VERSION=10.0.105
@@ -39,13 +40,25 @@ RUN apt-get update \
     && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
         | gpg --dearmor -o /usr/share/keyrings/microsoft.gpg \
     && chmod go+r /usr/share/keyrings/microsoft.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ ${UBUNTU_CODENAME} main" \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ ${AZURE_CLI_CODENAME} main" \
         | tee /etc/apt/sources.list.d/azure-cli.list > /dev/null \
     # Refresh index once for all new repos, then install
     && apt-get update \
-    && apt-get install -y --no-install-recommends nodejs gh docker-ce-cli azure-cli awscli \
+    && apt-get install -y --no-install-recommends nodejs gh docker-ce-cli azure-cli \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Install AWS CLI v2 from official bundle (works reliably across Ubuntu releases).
+RUN ARCH="$(dpkg --print-architecture)" \
+    && case "$ARCH" in \
+        amd64) AWS_ARCH="x86_64" ;; \
+        arm64) AWS_ARCH="aarch64" ;; \
+        *) echo "Unsupported architecture for AWS CLI: $ARCH" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${AWS_ARCH}.zip" -o /tmp/awscliv2.zip \
+    && unzip -q /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update \
+    && rm -rf /tmp/aws /tmp/awscliv2.zip
 
 # Install specific .NET SDK versions via the official dotnet-install script.
 # Installing to /usr/lib/dotnet ensures SDKs appear under /usr/lib/dotnet/sdk.
