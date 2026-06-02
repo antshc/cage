@@ -129,3 +129,22 @@ Default rules are baked into the image. Allowed hosts by default:
 | pki | `ocsp.digicert.com`, `crl3.digicert.com`, `crl4.digicert.com`, `*.digicert.com`, `s.symcb.com`, `ts-crl.ws.symantec.com`, `www.microsoft.com` |
 
 To allow additional hosts, add `.py` rule files to `rules/` — they extend the defaults without replacing them. See `rules/example.py` for the full convention.
+
+## Publishing a release
+
+Docker Hub tags are driven by git tags. Push a semver tag to trigger a build:
+
+```bash
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+This produces the following Docker Hub tags automatically:
+
+| Git tag | Docker Hub tags |
+|---------|-----------------|
+| `v1.2.3` | `antshc/cage:1.2.3`, `antshc/cage:1.2`, `antshc/cage:1` |
+| *(push to `main`)* | `antshc/cage:latest` |
+| *(push to `dev`)* | `antshc/cage:dev` |
+
+To publish a specific tag manually, use **Actions → Docker Image CI → Run workflow** and fill in the **Version** field (e.g. `v1.2.3`).

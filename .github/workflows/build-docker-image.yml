@@ -2,7 +2,7 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main", "dev", "release/v*" ]
+    branches: [ "main", "dev" ]
     tags: [ "v*.*.*" ]
   workflow_dispatch:
     inputs:
@@ -46,8 +46,8 @@ jobs:
           type=raw,value=dev,enable=${{ github.ref == 'refs/heads/dev' }}
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
           type=raw,value=latest,enable={{is_default_branch}}
-          type=match,pattern=release/(v.*),group=1,event=branch
           type=sha
 
     - name: Build and push (cached)
