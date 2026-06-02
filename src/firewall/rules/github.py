@@ -3,6 +3,9 @@ from mitmproxy import http
 # Patched at startup by user-rules/github.py via the firewall loader.
 ALLOWED_REPOS: list[str] = []
 
+# api.github.com paths are prefixed with /repos/<org>/<repo>/...
+_API_PREFIXES = ["/repos" + r for r in ALLOWED_REPOS] + ["/user", "/graphql", "/"]
+
 _ALLOWED_GITHUB_PATHS = [
     "/login",
     "/session",
@@ -27,11 +30,8 @@ def check_request(flow: http.HTTPFlow) -> None:
         # objects/raw/release-assets hosts: no path restriction
         return
     path = flow.request.path
-    # api.github.com paths are prefixed with /repos/<org>/<repo>/...
-    # Computed here (not at import time) so ALLOWED_REPOS reflects the patched value.
-    api_prefixes = ["/repos" + r for r in ALLOWED_REPOS] + ["/user", "/graphql", "/"]
     if host == "api.github.com":
-        prefixes = api_prefixes
+        prefixes = _API_PREFIXES
     else:
         prefixes = ALLOWED_REPOS + _ALLOWED_GITHUB_PATHS
     if not any(path.startswith(p) for p in prefixes):
