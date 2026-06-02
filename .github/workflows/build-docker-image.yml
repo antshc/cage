@@ -6,6 +6,10 @@ on:
     tags: [ "v*.*.*" ]
   workflow_dispatch:
     inputs:
+      version:
+        description: "Docker image tag (e.g. v1.2.3). Overrides auto-generated tags."
+        type: string
+        required: false
       no_cache:
         description: Build without using Docker cache
         type: boolean
@@ -38,6 +42,7 @@ jobs:
       with:
         images: antshc/cage
         tags: |
+          type=raw,value=${{ inputs.version }},enable=${{ inputs.version != '' }}
           type=raw,value=dev,enable=${{ github.ref == 'refs/heads/dev' }}
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
