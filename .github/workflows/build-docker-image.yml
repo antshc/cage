@@ -38,7 +38,7 @@ jobs:
       with:
         images: antshc/cage
         tags: |
-          type=ref,event=branch
+          type=raw,value=dev,enable=${{ github.ref == 'refs/heads/dev' }}
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=raw,value=latest,enable={{is_default_branch}}
