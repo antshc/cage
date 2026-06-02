@@ -8,6 +8,10 @@ NODE_CA_BUNDLE=/tmp/node-ca-bundle.pem
 # Always start the bundle with the mitmproxy CA (required for proxied HTTPS)
 cat /etc/mitmproxy/certs/mitmproxy-ca-cert.pem > "$NODE_CA_BUNDLE"
 
+# Install mitmproxy CA into the system cert store so Go (gh), git, curl, etc.
+# trust the proxy's TLS interception certificates.
+cp /etc/mitmproxy/certs/mitmproxy-ca-cert.pem /usr/local/share/ca-certificates/mitmproxy-ca.crt
+
 if [ -d "$USER_CERTS_DIR" ]; then
   for cert in "$USER_CERTS_DIR"/*.crt "$USER_CERTS_DIR"/*.pem; do
     [ -f "$cert" ] || continue
@@ -18,5 +22,7 @@ if [ -d "$USER_CERTS_DIR" ]; then
     cat "$cert" >> "$NODE_CA_BUNDLE"
     echo "Registered CA certificate: $fname"
   done
-  update-ca-certificates --fresh > /dev/null 2>&1
 fi
+
+# Rebuild the system CA bundle (includes mitmproxy CA + any user-supplied certs)
+update-ca-certificates --fresh > /dev/null 2>&1
