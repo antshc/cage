@@ -18,7 +18,8 @@ docker compose -f docker-compose.yml build --pull sandbox
 - `api.github.com/` passes the firewall (all paths allowed via `/` prefix)
 - `raw.githubusercontent.com` passes the firewall (no path restriction)
 
-Allowed repos are configured in `testing/github/rules/github.py` (`ALLOWED_REPOS`).
+GitHub HTTPS traffic bypasses mitmproxy via iptables passthrough (41-iptables-passthrough.sh).
+GitHub HTTP traffic is allowed by the built-in `src/firewall/rules/github.py`.
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.allowed-repos.yml run --rm sandbox

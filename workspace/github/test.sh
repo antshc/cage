@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Use HTTP (not HTTPS) so mitmproxy's request() hook fires before any upstream
-# connection attempt. Blocked requests are returned as 403 by the firewall
-# without requiring internet access to GitHub.
+# Tests GitHub access from within the sandbox container.
+# GitHub domains are excluded from mitmproxy TLS interception (--ignore-hosts)
+# so that tools like gh CLI can connect directly with real certificates.
 
 PASS=0
 FAIL=0
@@ -34,12 +34,28 @@ assert_blocked() {
     fi
 }
 
+# --- gh CLI auth ---
+# Verifies that gh auth status works through the transparent proxy with
+# GitHub excluded from TLS interception (--ignore-hosts).
+gh_output=$(timeout 15 gh auth status 2>&1) && gh_rc=0 || gh_rc=$?
+
 assert_allowed "http://github.com/antshc/brain"
-assert_blocked  "http://github.com/some/blocked-repo"
+assert_allowed "http://github.com/some/other-repo"
 assert_allowed "http://api.github.com/user"
 assert_allowed "http://api.github.com/repos/antshc/brain/commits"
 assert_allowed "http://api.github.com/"
 assert_allowed "http://raw.githubusercontent.com/antshc/brain/main/README.md"
+if [ "$gh_rc" -eq 0 ]; then
+    echo "PASS: gh auth status"
+    ((PASS++)) || true
+elif [ "$gh_rc" -eq 124 ]; then
+    echo "FAIL: gh auth status (timed out — HTTPS passthrough not working)"
+    ((FAIL++)) || true
+else
+    echo "FAIL: gh auth status (exit code $gh_rc)"
+    echo "  $gh_output"
+    ((FAIL++)) || true
+fi
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

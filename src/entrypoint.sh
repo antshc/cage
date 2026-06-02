@@ -27,7 +27,7 @@ done
 export HTTP_PROXY=http://127.0.0.1:$PROXY_PORT
 export HTTPS_PROXY=http://127.0.0.1:$PROXY_PORT
 export ALL_PROXY=http://127.0.0.1:$PROXY_PORT
-export NO_PROXY=localhost,127.0.0.1
+export NO_PROXY=localhost,127.0.0.1,github.com,api.github.com,githubusercontent.com
 export NODE_EXTRA_CA_CERTS="${NODE_CA_BUNDLE:-/tmp/node-ca-bundle.pem}"
 
 # --- Optional setup script (runs as ubuntu, after proxy is ready) ---
