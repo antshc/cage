@@ -9,6 +9,7 @@ Known security gaps and their remediation status:
 | ☑ | 🟠 High | Non-HTTP traffic | Raw TCP/UDP (SSH, DNS to external) isn't intercepted by mitmproxy | iptables OUTPUT DROP rule blocks all non-loopback traffic from ubuntu user |
 | ☐ | 🟠 High | DNS exfiltration | DNS queries go directly to host resolver, bypassing proxy | Lock DNS to internal resolver only |
 | ☑ | 🟠 High | Network allowlist | All HTTP/HTTPS traffic filtered through mitmproxy firewall rules | Done |
+| ☑ | 🟡 Medium | GitHub HTTPS passthrough | GitHub HTTPS (port 443) bypasses mitmproxy entirely via iptables NAT RETURN + FILTER ACCEPT rules (`41-iptables-passthrough.sh`); agent can reach github.com and api.github.com directly | Intentional — required for `gh auth status` and git-over-HTTPS; GitHub HTTP (port 80) still goes through mitmproxy and is subject to firewall rules; IPs resolved at container startup |
 | ☑ | 🟠 High | Non-root user | Container runs as `ubuntu` (UID 1000), not root | Done |
 | ☐ | 🟡 Medium | Host filesystem | Mounted volumes may be writable, agent can modify host files | Use `:ro` on all mounts except workspace |
 | ☑ | 🟡 Medium | Docker socket | If host Docker socket is mounted, agent gets full host access | Opt-in only: mount `/var/run/docker.sock` by uncommenting the volume in `docker-compose.yml`. Risk accepted for trusted test environments; never enable for untrusted agent workloads |
