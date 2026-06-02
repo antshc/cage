@@ -93,7 +93,7 @@ RUN HOME=/tmp/mitmproxy-setup mitmdump --version \
     && chmod 644 /etc/mitmproxy/certs/mitmproxy-ca-cert.pem \
     && chmod 600 /etc/mitmproxy/certs/mitmproxy-ca.pem
 
-# Copy entrypoint, copiloty wrapper, init.d modules, firewall rules, and set up directories
+# Copy entrypoint, yolo wrapper, init.d modules, firewall rules, and set up directories
 COPY entrypoint.sh /etc/mitmproxy/entrypoint.sh
 COPY init.d/ /etc/mitmproxy/init.d/
 COPY copilot-alias.sh /usr/local/bin/copilot-alias.sh
@@ -102,7 +102,7 @@ COPY skills/ /home/ubuntu/.copilot/skills/
 RUN chmod +x /etc/mitmproxy/entrypoint.sh \
     && chmod +x /etc/mitmproxy/init.d/*.sh \
     && chmod +x /usr/local/bin/copilot-alias.sh \
-    && ln -s /usr/local/bin/copilot-alias.sh /usr/local/bin/copiloty \
+    && ln -s /usr/local/bin/copilot-alias.sh /usr/local/bin/yolo \
     && mkdir -p /home/ubuntu/workspace /var/log/mitmproxy /var/log/copilot /etc/mitmproxy/config /etc/mitmproxy/user-rules \
     && chown -R ubuntu:ubuntu /var/log \
     && chmod -R a+rx /etc/mitmproxy \
@@ -122,4 +122,4 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /home/ubuntu/workspace
 
 ENTRYPOINT ["/etc/mitmproxy/entrypoint.sh"]
-CMD ["copiloty"]
+CMD ["yolo"]
